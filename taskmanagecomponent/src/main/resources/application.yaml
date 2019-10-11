@@ -1,0 +1,33 @@
+spring:
+  # datasource
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://127.0.0.1:3306/zwfengine?useSSL=false&useUnicode=true&characterEncoding=UTF-8
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 1234
+    druid:
+      initial-size: 5
+      max-active: 5
+      max-wait: 10000
+# mybatis
+mybatis-plus:
+  config-location: classpath:mybatis-config.xml
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.oilpeddler.wfengine.taskmanagecomponent.dataobject
+# dubbo
+dubbo:
+  application:
+    name: taskmanagecomponent-service
+  registry:
+    address: zookeeper://127.0.0.1:2181
+  protocol:
+    port: -1
+    name: dubbo
+  scan:
+    base-packages: com.oilpeddler.wfengine.taskmanagecomponent.service
+# rocketmq
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: task-producer-group
