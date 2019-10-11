@@ -21,7 +21,7 @@ public class WfProcessDefinitionDO extends BaseDO {
     /**
      * 流程定义名称(中文，从xml中抽取)
      */
-    private Integer pdName;
+    private String pdName;
 
     /**
      * 对应的流程资源文件no，即唯一标识，由画图软件自动生成，从xml中抽取

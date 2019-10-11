@@ -1,14 +1,26 @@
 package com.oilpeddler.wfengine.processmanagecomponent.service.impl;
 import com.oilpeddler.wfengine.common.api.processmanagservice.WfProcessDefinitionService;
 import com.oilpeddler.wfengine.common.bo.WfProcessDefinitionBO;
+import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
+import com.oilpeddler.wfengine.common.element.BpmnModel;
+import com.oilpeddler.wfengine.common.element.DataParam;
+import com.oilpeddler.wfengine.common.element.SequenceFlow;
+import com.oilpeddler.wfengine.common.tools.BpmnXMLConvertUtil;
 import com.oilpeddler.wfengine.processmanagecomponent.convert.WfProcessDefinitionConvert;
 import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessDefinitionMapper;
+import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessParamsRelationMapper;
 import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessTemplateMapper;
 import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessDefinitionDO;
+import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessParamsRecordDO;
+import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessParamsRelationDO;
 import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessTemplateDO;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+import java.util.List;
+
+@org.springframework.stereotype.Service
 @Service
 public class WfProcessDefinitionServiceImpl implements WfProcessDefinitionService {
     @Autowired
@@ -17,6 +29,9 @@ public class WfProcessDefinitionServiceImpl implements WfProcessDefinitionServic
     @Autowired
     WfProcessTemplateMapper wfProcessTemplateMapper;
 
+    @Autowired
+    WfProcessParamsRelationMapper wfProcessParamsRelationMapper;
+
     @Override
     public WfProcessDefinitionBO getWfProcessDefinitionById(String id) {
         WfProcessDefinitionDO wfProcessDefinitionDO = wfProcessDefinitionMapper.selectById(id);
@@ -24,5 +39,36 @@ public class WfProcessDefinitionServiceImpl implements WfProcessDefinitionServic
         WfProcessTemplateDO wfProcessTemplateDO = wfProcessTemplateMapper.selectById(wfProcessDefinitionDO.getPtId());
         wfProcessDefinitionBO.setPtContent(wfProcessTemplateDO.getPtContent());
         return wfProcessDefinitionBO;
+    }
+
+    @Override
+    public WfProcessDefinitionBO generatePDFromTemplateFile(WfProcessTemplateDTO wfProcessTemplateDTO) {
+        BpmnModel bpmnModel = BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessTemplateDTO.getPtContent());
+        WfProcessDefinitionDO wfProcessDefinitionDO = new WfProcessDefinitionDO()
+                .setPtId(wfProcessTemplateDTO.getId())
+                .setPdName(bpmnModel.getName())
+                .setPdNo(bpmnModel.getNo());
+        wfProcessDefinitionDO.setCreatetime(new Date());
+        wfProcessDefinitionDO.setUpdatetime(wfProcessDefinitionDO.getCreatetime());
+        wfProcessDefinitionMapper.insert(wfProcessDefinitionDO);
+        /**
+         * 构造参数映射关系
+         */
+        List<SequenceFlow> sequenceFlowList =  bpmnModel.getProcess().getSequenceFlowList();
+        for(SequenceFlow sequenceFlow : sequenceFlowList){
+            for(DataParam dataParam : sequenceFlow.getParamList()){
+                WfProcessParamsRelationDO wfProcessParamsRelationDO = new WfProcessParamsRelationDO()
+                        .setPpName(dataParam.getPpName())
+                        .setPpLevel("02")
+                        .setPpType(dataParam.getPpType())
+                        .setPdId(wfProcessDefinitionDO.getId())
+                        .setTaskNo(dataParam.getTaskNo())
+                        .setEnginePpName(dataParam.getEnginePpName());
+                wfProcessParamsRelationDO.setCreatetime(new Date());
+                wfProcessParamsRelationDO.setUpdatetime(wfProcessParamsRelationDO.getCreatetime());
+                wfProcessParamsRelationMapper.insert(wfProcessParamsRelationDO);
+            }
+        }
+        return WfProcessDefinitionConvert.INSTANCE.convertDOToBO(wfProcessDefinitionDO);
     }
 }
