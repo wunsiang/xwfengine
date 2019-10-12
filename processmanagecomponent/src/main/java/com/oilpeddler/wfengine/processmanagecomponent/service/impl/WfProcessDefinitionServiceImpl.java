@@ -5,6 +5,7 @@ import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
 import com.oilpeddler.wfengine.common.element.BpmnModel;
 import com.oilpeddler.wfengine.common.element.DataParam;
 import com.oilpeddler.wfengine.common.element.SequenceFlow;
+import com.oilpeddler.wfengine.common.element.UserTask;
 import com.oilpeddler.wfengine.common.tools.BpmnXMLConvertUtil;
 import com.oilpeddler.wfengine.processmanagecomponent.convert.WfProcessDefinitionConvert;
 import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessDefinitionMapper;
@@ -54,9 +55,11 @@ public class WfProcessDefinitionServiceImpl implements WfProcessDefinitionServic
         /**
          * 构造参数映射关系
          */
-        List<SequenceFlow> sequenceFlowList =  bpmnModel.getProcess().getSequenceFlowList();
-        for(SequenceFlow sequenceFlow : sequenceFlowList){
-            for(DataParam dataParam : sequenceFlow.getParamList()){
+        List<UserTask> userTaskList =  bpmnModel.getProcess().getUserTaskList();
+        for(UserTask userTask : userTaskList){
+            if(userTask.getParamList() == null)
+                continue;
+            for(DataParam dataParam : userTask.getParamList()){
                 WfProcessParamsRelationDO wfProcessParamsRelationDO = new WfProcessParamsRelationDO()
                         .setPpName(dataParam.getPpName())
                         .setPpLevel("02")

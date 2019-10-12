@@ -131,11 +131,24 @@ public class BpmnXMLConvertUtil {
                     userTask.setAssignees(assigneesList);
                     break;
                 case BpmnXMLConstants.ATTRIBUTE_TASK_USER_TYPE:
-                    userTask.setAssigneeType(attribute.getValue());
+                    userTask.setTaskType(attribute.getValue());
                     break;
                 case BpmnXMLConstants.ATTRIBUTE_TASK_USER_PAGEKEY:
                     userTask.setPageKey(attribute.getValue());
                     break;
+                case BpmnXMLConstants.ATTRIBUTE_SEQUENCE_FLOW_PARAMLIST:
+                    String content = attribute.getValue();
+                    String[] params = content.split(";");
+                    List<DataParam> dataParamList = new ArrayList<>();
+                    for(String paramData : params){
+                        String[] attrs = paramData.split(",");
+                        DataParam dataParam = new DataParam().setTaskNo(attrs[0])
+                                .setPpName(attrs[1])
+                                .setPpType(attrs[2])
+                                .setEnginePpName(attrs[3]);
+                        dataParamList.add(dataParam);
+                    }
+                    userTask.setParamList(dataParamList);
             }
         }
         return userTask;
@@ -157,15 +170,32 @@ public class BpmnXMLConvertUtil {
                 case BpmnXMLConstants.ATTRIBUTE_NAME:
                     sequenceFlow.setName(attribute.getValue());
                     break;
-                case BpmnXMLConstants.ATTRIBUTE_SEQUENCE_FLOW_CONDITION:
-                    sequenceFlow.setConditionExpression(attribute.getValue());
-                    break;
                 case BpmnXMLConstants.ATTRIBUTE_SEQUENCE_FLOW_SOURCE_REF:
                     sequenceFlow.setSourceRef(attribute.getValue());
                     break;
                 case BpmnXMLConstants.ATTRIBUTE_SEQUENCE_FLOW_TARGET_REF:
                     sequenceFlow.setTargetRef(attribute.getValue());
                     break;
+            }
+        }
+        //遍历element节点的所有子节点
+        Iterator<Element> iterator = element.elementIterator();
+        while (iterator.hasNext()){
+            Element currentElement = iterator.next();
+            switch (currentElement.getName()){
+                case BpmnXMLConstants.ATTRIBUTE_SEQUENCE_FLOW_CONDITION:
+                    ConvertToConditionExpression(currentElement,sequenceFlow);
+                    break;
+            }
+        }
+        return sequenceFlow;
+    }
+
+    private static String ConvertToConditionExpression(Element currentElement,SequenceFlow sequenceFlow){
+        sequenceFlow.setConditionExpression(currentElement.getText());
+        List<Attribute> attributeList = currentElement.attributes();
+        for(Attribute attribute : attributeList){
+            switch (attribute.getName()){
                 case BpmnXMLConstants.ATTRIBUTE_SEQUENCE_FLOW_PARAMLIST:
                     String content = attribute.getValue();
                     String[] params = content.split(";");
@@ -175,13 +205,13 @@ public class BpmnXMLConvertUtil {
                         DataParam dataParam = new DataParam().setTaskNo(attrs[0])
                                 .setPpName(attrs[1])
                                 .setPpType(attrs[2])
-                                .setEnginePpName(attrs[4]);
+                                .setEnginePpName(attrs[3]);
                         dataParamList.add(dataParam);
                     }
                     sequenceFlow.setParamList(dataParamList);
             }
         }
-        return sequenceFlow;
+        return currentElement.getText();
     }
 
     /**

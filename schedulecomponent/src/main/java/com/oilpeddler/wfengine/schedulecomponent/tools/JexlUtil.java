@@ -15,6 +15,8 @@ public class JexlUtil {
 
 
     public static Boolean conditionIsMacth(String conditionExpression, Map<String, Object> requiredData){
+        if(conditionExpression == null || conditionExpression.length() == 0)
+            conditionExpression = "true";
         JexlContext jc = new MapContext();
         for(Map.Entry<String ,Object> entry : requiredData.entrySet()){
             jc.set(entry.getKey(), entry.getValue());

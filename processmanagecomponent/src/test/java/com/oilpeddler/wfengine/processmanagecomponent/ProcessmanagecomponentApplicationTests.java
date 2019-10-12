@@ -28,7 +28,7 @@ public class ProcessmanagecomponentApplicationTests {
         WfProcessTemplateDTO wfProcessTemplateDTO = wfProcessTemplateService.selectByPtFilename("汇报用流程图");
         WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.generatePDFromTemplateFile(wfProcessTemplateDTO);
         /**
-         * TODO 模拟开发人员配置业务表单参数名称和流程引擎参数映射关系
+         * 模拟开发人员配置业务表单参数名称和流程引擎参数映射关系,演示的时候直接在数据库里面配吧，直观又省事
          */
     }
 

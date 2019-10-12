@@ -17,7 +17,7 @@ import java.util.Date;
  */
 @Data
 @Accessors(chain = true)
-public class WfProcessTemplateDTO extends BaseDO {
+public class WfProcessTemplateDTO{
     private static final long serialVersionUID=1L;
 
     /**

@@ -26,8 +26,13 @@ dubbo:
     name: schedulecomponent-service
   registry:
     address: zookeeper://127.0.0.1:2181
+    check: false
   protocol:
     port: -1
     name: dubbo
   scan:
     base-packages: com.oilpeddler.wfengine.schedulecomponent.service
+  reference:
+    check: false
+  consumer:
+    check: false

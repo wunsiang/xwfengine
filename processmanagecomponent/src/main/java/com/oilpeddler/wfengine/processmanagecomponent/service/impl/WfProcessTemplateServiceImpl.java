@@ -19,7 +19,7 @@ public class WfProcessTemplateServiceImpl implements WfProcessTemplateService {
     @Override
     public WfProcessTemplateDTO selectByPtFilename(String ptFilename) {
         QueryWrapper<WfProcessTemplateDO> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("ptFilename",ptFilename);
+        queryWrapper.eq("pt_filename",ptFilename);
         WfProcessTemplateDO wfProcessTemplateDO = wfProcessTemplateMapper.selectOne(queryWrapper);
         return WfProcessTemplateConvert.INSTANCE.convertDOToDTO(wfProcessTemplateDO);
     }
