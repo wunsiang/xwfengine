@@ -25,7 +25,8 @@ public interface WfProcessInstanceConvert {
             @Mapping(source = "id", target = "piId"),
             @Mapping(source = "endtime", target = "piEndtime"),
             @Mapping(source = "createtime", target = "piCreatetime"),
-            @Mapping(source = "updatetime", target = "piUpdatetime")
+            @Mapping(source = "updatetime", target = "piUpdatetime"),
+            @Mapping(target = "id",  ignore = true)
     })
     WfProcessHistoryInstanceDO convertRunToHistory(WfProcessInstanceDO wfProcessInstanceDO);
 

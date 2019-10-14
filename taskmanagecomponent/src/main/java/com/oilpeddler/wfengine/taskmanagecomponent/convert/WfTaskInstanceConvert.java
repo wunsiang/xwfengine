@@ -5,10 +5,11 @@ import com.oilpeddler.wfengine.common.dto.WfTaskInstanceDTO;
 import com.oilpeddler.wfengine.common.message.WfTaskInstanceMessage;
 import com.oilpeddler.wfengine.taskmanagecomponent.dataobject.WfTaskHistoryInstanceDO;
 import com.oilpeddler.wfengine.taskmanagecomponent.dataobject.WfTaskInstanceDO;
+import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
-
+@Mapper
 public interface WfTaskInstanceConvert {
     WfTaskInstanceConvert INSTANCE = Mappers.getMapper(WfTaskInstanceConvert.class);
 
@@ -28,7 +29,8 @@ public interface WfTaskInstanceConvert {
             @Mapping(source = "id", target = "tiId"),
             @Mapping(source = "endtime", target = "tiEndtime"),
             @Mapping(source = "createtime", target = "tiCreatetime"),
-            @Mapping(source = "updatetime", target = "tiUpdatetime")
+            @Mapping(source = "updatetime", target = "tiUpdatetime"),
+            @Mapping(target = "id",  ignore = true)
     })
     WfTaskHistoryInstanceDO convertRunToHistory(WfTaskInstanceDO wfTaskInstanceDO);
 }

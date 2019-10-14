@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.Resource;
 import java.util.*;
 
+
+
 @Service
 @org.springframework.stereotype.Service
 public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
@@ -60,8 +62,8 @@ public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
     @Override
     public int count(WfTaskInstanceQueryDTO wfTaskInstanceQueryDTO) {
         HashMap<String,String> map = new HashMap<>();
-        map.put("tiStatus",wfTaskInstanceQueryDTO.getTiStatus());
-        map.put("aiId",wfTaskInstanceQueryDTO.getAiId());
+        map.put("ti_status",wfTaskInstanceQueryDTO.getTiStatus());
+        map.put("ai_id",wfTaskInstanceQueryDTO.getAiId());
         QueryWrapper<WfTaskInstanceDO> queryWrapper = new QueryWrapper<>();
         queryWrapper.allEq(map);
         return wfTaskInstanceMapper.selectCount(queryWrapper);
@@ -71,8 +73,8 @@ public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
     @Override
     public List<WfTaskInstanceDTO> findRelatedTaskList(String aiId) {
         HashMap<String,Object> conditionMap = new HashMap<>();
-        conditionMap.put("aiId",aiId);
-        conditionMap.put("tiStatus",TaskInstanceState.TASK_INSTANCE_STATE_DISABLED);
+        conditionMap.put("ai_id",aiId);
+        conditionMap.put("ti_status",TaskInstanceState.TASK_INSTANCE_STATE_COMPLETED);
         List<WfTaskInstanceDO> wfTaskInstanceDOList = wfTaskInstanceMapper.selectByMap(conditionMap);
         List<WfTaskInstanceDTO> wfTaskInstanceDTOList = new ArrayList<>();
         for(WfTaskInstanceDO wfTaskInstanceDO : wfTaskInstanceDOList){
@@ -84,7 +86,7 @@ public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
     @Override
     public void moveRelatedTaskToHistory(String aiId) {
         Map<String,Object> conditionMap = new HashMap<>();
-        conditionMap.put("aiId",aiId);
+        conditionMap.put("ai_id",aiId);
         List<WfTaskInstanceDO> wfTaskInstanceDOList = wfTaskInstanceMapper.selectByMap(conditionMap);
         for(WfTaskInstanceDO wfTaskInstanceDO : wfTaskInstanceDOList){
             WfTaskHistoryInstanceDO wfTaskHistoryInstanceDO = WfTaskInstanceConvert.INSTANCE.convertRunToHistory(wfTaskInstanceDO);

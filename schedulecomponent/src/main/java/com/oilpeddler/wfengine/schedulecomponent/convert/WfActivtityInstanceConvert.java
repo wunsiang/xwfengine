@@ -28,14 +28,16 @@ public interface WfActivtityInstanceConvert {
     @Mappings({
             @Mapping(source = "id", target = "actId"),
             @Mapping(source = "createtime", target = "aiCreatetime"),
-            @Mapping(source = "updatetime", target = "aiUpdatetime")
+            @Mapping(source = "updatetime", target = "aiUpdatetime"),
+            @Mapping(target = "id",  ignore = true)
     })
     WfActivityHistoryInstanceDO convertRunToHistoryDO(WfActivtityInstanceDTO wfActivtityInstanceDTO);
 
     @Mappings({
             @Mapping(source = "id", target = "actId"),
             @Mapping(source = "createtime", target = "aiCreatetime"),
-            @Mapping(source = "updatetime", target = "aiUpdatetime")
+            @Mapping(source = "updatetime", target = "aiUpdatetime"),
+            @Mapping(target = "id",  ignore = true)
     })
     WfActivityHistoryInstanceDO convertRunDOToHistoryDO(WfActivtityInstanceDO wfActivtityInstanceDO);
 }

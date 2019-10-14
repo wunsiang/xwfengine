@@ -9,6 +9,7 @@ import com.oilpeddler.wfengine.taskmanagecomponent.dataobject.WfTaskHistoryInsta
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@org.springframework.stereotype.Service
 @Service
 public class WfTaskHistoryInstanceServiceImpl implements WfTaskHistoryInstanceService {
 

@@ -13,6 +13,7 @@ import com.oilpeddler.wfengine.taskmanagecomponent.dataobject.WfTaskInstanceDO;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -24,7 +25,7 @@ import java.util.List;
         consumerGroup = "task-consumer-group")
 public class TaskManageConsumer implements RocketMQListener<TaskRequestMessage> {
 
-    @Reference
+    @Autowired
     WfTaskInstanceService wfTaskInstanceService;
 
     @Override

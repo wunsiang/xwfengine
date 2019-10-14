@@ -41,18 +41,20 @@ public class ParallelGatewayPathParseHandler extends AbstractPathParseHandler{
         //若为聚合并行网关，则需要修改并判定当前没获取到的令牌数目，若还有令牌没拿到，则等待
         if(currentParallelGateway.getIncomingFlows().size() > 1){
             QueryWrapper<WfElementDO> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("elementNo", currentParallelGateway.getNo());
-            queryWrapper.eq("elementRole",2);
+            queryWrapper.eq("element_no", currentParallelGateway.getNo());
+            queryWrapper.eq("element_role",2);
+            queryWrapper.eq("element_process_id",processInstanceId);
             WfElementDO wfElementDO = wfElementMapper.selectOne(queryWrapper);
-            if(wfElementDO.getTokenNumber() == 1){
-                wfElementDO.setTokenNumber(0);
-                wfElementMapper.updateById(wfElementDO);
-            }else {
+            wfElementDO.setTokenNumber(wfElementDO.getTokenNumber() - 1);
+            wfElementMapper.updateById(wfElementDO);
+            if(wfElementDO.getTokenNumber() != 0){
                 return;
+            }else {
+                wfElementMapper.deleteById(wfElementDO);
             }
         }
         if(currentParallelGateway.getOutgoingFlows().size() > 1){
-            //分支功能的并行网关存储发放令牌数量
+/*            //分支功能的并行网关存储发放令牌数量
             WfElementDO wfElementDO = new WfElementDO();
             wfElementDO.setElementNo(currentParallelGateway.getNo());
             wfElementDO.setElementProcessId(processInstanceId);
@@ -60,11 +62,11 @@ public class ParallelGatewayPathParseHandler extends AbstractPathParseHandler{
             wfElementDO.setCreatetime(new Date());
             wfElementDO.setUpdatetime(new Date());
             wfElementDO.setElementRole(1);
-            wfElementMapper.insert(wfElementDO);
+            wfElementMapper.insert(wfElementDO);*/
             //对应的关联聚合作用的并行网关
-            ParallelGateway relatedParallelGateway = currentParallelGateway.getRelatedGateWay();
+            String relatedParallelGateway = currentParallelGateway.getRelatedGateWay();
             WfElementDO relatedWfElementDO = new WfElementDO();
-            relatedWfElementDO.setElementNo(relatedParallelGateway.getNo());
+            relatedWfElementDO.setElementNo(relatedParallelGateway);
             relatedWfElementDO.setElementProcessId(processInstanceId);
             relatedWfElementDO.setTokenNumber(currentParallelGateway.getOutgoingFlows().size());
             relatedWfElementDO.setCreatetime(new Date());

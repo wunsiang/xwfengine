@@ -1,25 +1,23 @@
 package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
 import com.oilpeddler.wfengine.common.api.processmanagservice.WfProcessParamsRecordService;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfActivityHistoryInstanceService;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
 import com.oilpeddler.wfengine.common.element.*;
 import com.oilpeddler.wfengine.common.element.Process;
+import com.oilpeddler.wfengine.common.tools.BpmnXMLConvertUtil;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfActivtityInstanceConvert;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfActivityHistoryInstanceMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivityHistoryInstanceDO;
 import com.oilpeddler.wfengine.schedulecomponent.service.ScheduleManageService;
-import com.oilpeddler.wfengine.schedulecomponent.tools.BpmnXMLConvertUtil;
 import com.oilpeddler.wfengine.schedulecomponent.tools.PathParseUtil;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+
 @Service
 public class ScheduleManageServiceImpl implements ScheduleManageService {
     @Autowired
@@ -46,7 +44,7 @@ public class ScheduleManageServiceImpl implements ScheduleManageService {
             List<BaseElement> addList = new ArrayList<>();
             List<BaseElement> delList = new ArrayList<>();
             for(BaseElement element : nextSteps){
-                if(element instanceof Gateway){
+                if(element instanceof Gateway || element instanceof StartEvent){
                     flag = false;
                     pathParseUtil.startHandle(nextSteps,process,addList,delList,processInstanceId);
                     break;

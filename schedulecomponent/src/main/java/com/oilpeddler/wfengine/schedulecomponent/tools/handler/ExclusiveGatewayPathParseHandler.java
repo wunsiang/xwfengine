@@ -49,7 +49,7 @@ public class ExclusiveGatewayPathParseHandler extends AbstractPathParseHandler {
                     if(wfProcessParamsRecordBO != null){
                         switch (wfProcessParamsRecordBO.getPpType()){
                             case ParamType.PARAM_TYPE_BOOL:
-                                requiredData.put(dataParam.getEnginePpName(),wfProcessParamsRecordBO.getPpRecordValue().equals(1) ? true : false);
+                                requiredData.put(dataParam.getEnginePpName(),wfProcessParamsRecordBO.getPpRecordValue().equals("1") ? true : false);
                                 break;
                             case ParamType.PARAM_TYPE_INT:
                                 requiredData.put(dataParam.getEnginePpName(),Integer.parseInt(wfProcessParamsRecordBO.getPpRecordValue()));

@@ -18,6 +18,9 @@ public interface WfProcessInstanceService {
      */
     void endProcess(String piId);
 
+    void haha();
+
     WfProcessInstanceBO getById(String id);
+
 
 }

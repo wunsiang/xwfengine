@@ -51,11 +51,32 @@ public class BpmnXMLConvertUtil {
                         break;
                 }
             }
+            generateOutAndInGoings(bpmnModel.getProcess());
+
             return bpmnModel;
         } catch (DocumentException e) {
             e.printStackTrace();
         }
         return null;
+    }
+    private static void generateOutAndInGoings(Process process){
+        for(SequenceFlow sequenceFlow : process.getSequenceFlowList()){
+            BaseElement baseElement = findMatchElement(sequenceFlow.getSourceRef(),process);
+            if(baseElement instanceof Event)
+                ((Event) baseElement).getOutgoingFlows().add(sequenceFlow);
+            else if(baseElement instanceof Gateway)
+                ((Gateway) baseElement).getOutgoingFlows().add(sequenceFlow);
+            else if(baseElement instanceof UserTask)
+                ((UserTask) baseElement).getOutgoingFlows().add(sequenceFlow);
+
+            baseElement = findMatchElement(sequenceFlow.getTargetRef(),process);
+            if(baseElement instanceof Event)
+                ((Event) baseElement).getIncomingFlows().add(sequenceFlow);
+            else if(baseElement instanceof Gateway)
+                ((Gateway) baseElement).getIncomingFlows().add(sequenceFlow);
+            else if(baseElement instanceof UserTask)
+                ((UserTask) baseElement).getIncomingFlows().add(sequenceFlow);
+        }
     }
 
 
@@ -251,6 +272,8 @@ public class BpmnXMLConvertUtil {
                 case BpmnXMLConstants.ATTRIBUTE_NAME:
                     parallelGateway.setName(attribute.getValue());
                     break;
+                case BpmnXMLConstants.ATTRIBUTE_GATEWAY_RELATEDGATEWAY:
+                    parallelGateway.setRelatedGateWay(attribute.getValue());
             }
         }
         return parallelGateway;

@@ -8,7 +8,7 @@ import java.util.Map;
 public interface WfProcessParamsRecordService {
     void recordRequiredData(String tiId, String pdId,String taskNo,Map<String, Object> requiredData);
 
-    public void calculateActivityData(WfActivtityInstanceDTO wfActivtityInstanceDTO, String tiId);
+    void calculateActivityData(WfActivtityInstanceDTO wfActivtityInstanceDTO, String tiId);
 
-    public WfProcessParamsRecordBO getByEnginePpName(String enginePpName,String processInstanceId,String usertaskNo);
+    WfProcessParamsRecordBO getByEnginePpName(String enginePpName,String processInstanceId,String usertaskNo);
 }

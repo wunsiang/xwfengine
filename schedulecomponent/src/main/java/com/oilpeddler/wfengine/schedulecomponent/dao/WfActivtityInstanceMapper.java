@@ -2,6 +2,7 @@ package com.oilpeddler.wfengine.schedulecomponent.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivtityInstanceDO;
+import org.springframework.stereotype.Repository;
 
 /**
  * <p>
@@ -11,6 +12,7 @@ import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivtityInstanceD
  * @author wenxiang
  * @since 2019-10-09
  */
+@Repository
 public interface WfActivtityInstanceMapper extends BaseMapper<WfActivtityInstanceDO> {
 
 }

@@ -29,6 +29,7 @@ import java.util.Map;
  * @since 2019-10-09
  */
 @Service
+@org.springframework.stereotype.Service
 public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceService {
 
     @Autowired
@@ -60,7 +61,7 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
     public void clearActivityOfProcess(String piId) {
         QueryWrapper<WfActivtityInstanceDO> queryWrapper = new QueryWrapper<>();
         queryWrapper
-                .eq("piId",piId);
+                .eq("pi_id",piId);
         wfActivtityInstanceMapper.delete(queryWrapper);
     }
 
@@ -71,8 +72,8 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
             UserTask userTask = (UserTask)baseElement;
             QueryWrapper<WfActivtityInstanceDO> queryWrapper = new QueryWrapper<>();
             queryWrapper
-                    .eq("piId",piId)
-                    .eq("usertaskNo",userTask.getNo());
+                    .eq("pi_id",piId)
+                    .eq("usertask_no",userTask.getNo());
             WfActivtityInstanceDO wfActivtityInstanceDO = wfActivtityInstanceMapper.selectOne(queryWrapper);
             if(wfActivtityInstanceDO != null){
                 wfActivtityInstanceDO.setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_RUNNING);

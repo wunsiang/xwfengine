@@ -8,6 +8,7 @@ import com.oilpeddler.wfengine.common.api.taskmanagservice.WfTaskInstanceService
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
 import com.oilpeddler.wfengine.common.bo.WfProcessDefinitionBO;
 import com.oilpeddler.wfengine.common.bo.WfProcessInstanceBO;
+import com.oilpeddler.wfengine.common.constant.ActivityInstanceState;
 import com.oilpeddler.wfengine.common.constant.TaskInstanceState;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
 import com.oilpeddler.wfengine.common.dto.WfTaskInstanceQueryDTO;
@@ -18,10 +19,9 @@ import com.oilpeddler.wfengine.common.element.UserTask;
 import com.oilpeddler.wfengine.common.message.ProcessRequestMessage;
 import com.oilpeddler.wfengine.common.message.ScheduleRequestMessage;
 import com.oilpeddler.wfengine.common.message.TaskRequestMessage;
-import com.oilpeddler.wfengine.common.message.WfTaskInstanceMessage;
+import com.oilpeddler.wfengine.common.tools.BpmnXMLConvertUtil;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfActivtityInstanceConvert;
 import com.oilpeddler.wfengine.schedulecomponent.service.ScheduleManageService;
-import com.oilpeddler.wfengine.schedulecomponent.tools.BpmnXMLConvertUtil;
 import org.apache.dubbo.config.annotation.Reference;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -61,7 +60,7 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
     @Reference
     WfProcessParamsRecordService wfProcessParamsRecordService;
 
-    @Reference
+    @Autowired
     WfActivtityInstanceService wfActivtityInstanceService;
 
     @Reference
@@ -113,14 +112,15 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
             //导致计算错误
             wfTaskInstanceService.moveRelatedTaskToHistory(wfActivtityInstanceDTO.getId());
             //活动状态置已完成
+            wfActivtityInstanceDTO.setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_COMPLETED);
             wfActivtityInstanceService.update(wfActivtityInstanceDTO);
             //活动历史库打时间戳记录
             scheduleManageService.recordActivityHistory(wfActivtityInstanceDTO);
             //之后开始找接下来的活动，返回值为空代表当前还有关联活动未完成，返回值为endevent说明要结束流程
-            WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getWfProcessDefinitionById(scheduleRequestMessage.getWfTaskInstanceMessage().getPdId());
+            WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getWfProcessDefinitionById(wfProcessInstanceBO.getPdId());
             BpmnModel bpmnModel = BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent());
             UserTask currentUserTask = scheduleManageService.findUserTaskByNo(wfActivtityInstanceBO.getUsertaskNo(),bpmnModel.getProcess());
-            List<BaseElement> readyExecuteUserTaskList =  scheduleManageService.getNextSteps(currentUserTask,bpmnModel.getProcess(),scheduleRequestMessage.getWfTaskInstanceMessage().getPiId());
+            List<BaseElement> readyExecuteUserTaskList =  scheduleManageService.getNextSteps(currentUserTask,bpmnModel.getProcess(),wfActivtityInstanceBO.getPiId());
             if(readyExecuteUserTaskList == null || readyExecuteUserTaskList.size() == 0){
                 //返回值为空代表当前还有关联任务未完成,等待
                 return;
@@ -128,7 +128,7 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
             //按照我们的规则，应该EndEvent的入度只能唯一，并且真正能执行到的只有一个
             else if(readyExecuteUserTaskList.get(0) instanceof EndEvent){
                 //发消息给流程管理器关闭流程,流程实例由流程管理器负责扫尾
-                sendProcessRequestMessage(scheduleRequestMessage.getWfProcessInstanceMessage().getId());
+                sendProcessRequestMessage(wfProcessInstanceBO.getId());
                 //流程所属活动扫尾
                 wfActivtityInstanceService.clearActivityOfProcess(wfProcessInstanceBO.getId());
             }else {
@@ -146,6 +146,6 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
     }
 
     private void sendTaskRequestMessage(List<WfActivtityInstanceBO> wfActivtityInstanceBOList) {
-        rocketMQTemplate.convertAndSend(ProcessRequestMessage.TOPIC, new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList));
+        rocketMQTemplate.convertAndSend(TaskRequestMessage.TOPIC, new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList));
     }
 }

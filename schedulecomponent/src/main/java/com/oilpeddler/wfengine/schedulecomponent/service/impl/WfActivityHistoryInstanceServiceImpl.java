@@ -6,7 +6,8 @@ import com.oilpeddler.wfengine.schedulecomponent.dao.WfActivityHistoryInstanceMa
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivityHistoryInstanceDO;
 import org.apache.dubbo.config.annotation.Service;
 
+@org.springframework.stereotype.Service
 @Service
-public class WfActivityHistoryInstanceServiceImpl extends ServiceImpl<WfActivityHistoryInstanceMapper, WfActivityHistoryInstanceDO>{
+public class WfActivityHistoryInstanceServiceImpl implements WfActivityHistoryInstanceService {
 
 }

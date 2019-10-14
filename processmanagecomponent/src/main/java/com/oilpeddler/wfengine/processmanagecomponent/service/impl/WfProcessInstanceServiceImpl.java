@@ -27,9 +27,8 @@ import java.util.Date;
  * @author wenxiang
  * @since 2019-10-08
  */
-//测试用
-@org.springframework.stereotype.Service
 @Service
+@org.springframework.stereotype.Service
 public class WfProcessInstanceServiceImpl implements WfProcessInstanceService {
     @Autowired
     WfProcessInstanceMapper wfProcessInstanceMapper;
@@ -78,9 +77,14 @@ public class WfProcessInstanceServiceImpl implements WfProcessInstanceService {
         wfProcessHistoryInstanceMapper.insert(wfProcessHistoryInstanceDO);
     }
 
+    @Override
     public WfProcessInstanceBO getById(String id){
         WfProcessInstanceDO wfProcessInstanceDO = wfProcessInstanceMapper.selectById(id);
         return WfProcessInstanceConvert.INSTANCE.convertDOToBO(wfProcessInstanceDO);
+    }
+
+    public void haha() {
+        System.out.println("haha");
     }
 
 
