@@ -6,6 +6,7 @@
     <modules>
         <module>schedulecomponent</module>
         <module>processmanagecomponent</module>
+        <module>taskmanagecomponent</module>
         <module>common</module>
     </modules>
     <parent>
