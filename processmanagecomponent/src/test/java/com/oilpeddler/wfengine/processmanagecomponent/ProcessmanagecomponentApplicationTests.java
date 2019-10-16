@@ -44,11 +44,11 @@ public class ProcessmanagecomponentApplicationTests {
      */
     private void mockCompleteTask(){
         //模拟业务controller收到用户提交处理表单同时提交的暗含在页面中的的已完成的任务标识和与该任务相关的必填项数据
-        String taskId = "1183668243248730113";
+        String taskId = "1184307495429369857";
         Map<String,Object> requiredData = new HashMap<>();
-        //requiredData.put("businessday",0);
+        //requiredData.put("businessday",1);
         //requiredData.put("businesspass",true);
-        //requiredData.put("businessok",true);
+        requiredData.put("businessok",true);
         wfTaskInstanceService.completeTask(taskId,requiredData);
     }
     /**
