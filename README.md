@@ -11,21 +11,21 @@ cd ~/ThirdSoft/zookeeper-3.4.9/bin
 在rocketmq-all-4.3.2/distribution/target/apache-rocketmq/conf/broker.conf 中 加入 
 
 ```
-brokerIP1=192.168.0.163 //你的公网IP
+brokerIP1=127.0.0.1 //你的公网IP
 ```
 
 运行Name Server
 
 ```shell
 cd /Users/wunsiang/ThirdSoft/rocketmq-all-4.3.2/distribution/target/apache-rocketmq
-nohup ./bin/mqnamesrv -n 192.168.0.163:9876 &
+nohup ./bin/mqnamesrv -n 127.0.0.1:9876 &
 tail -f ~/logs/rocketmqlogs/namesrv.log
 ```
 
 运行Broker
 
 ```shell
-nohup sh bin/mqbroker -n 192.168.0.163:9876 -c conf/broker.conf autoCreateTopicEnable=true &
+nohup sh bin/mqbroker -n 127.0.0.1:9876 -c conf/broker.conf autoCreateTopicEnable=true &
 tail -f ~/logs/rocketmqlogs/broker.log 
 ```
 

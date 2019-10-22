@@ -14,17 +14,11 @@ spring:
 mybatis-plus:
   config-location: classpath:mybatis-config.xml
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.oilpeddler.wfengine.schedulecomponent.dataobject
-# rocketmq
-rocketmq:
-  name-server: 127.0.0.1:9876
-  producer:
-    group: schedule-producer-group
-    send-message-timeout : 300000
+  type-aliases-package: com.oilpeddler.wfengine.taskmanagecomponent.dataobject
 # dubbo
 dubbo:
   application:
-    name: schedulecomponent-service
+    name: taskmanagecomponent-service
   registry:
     address: zookeeper://localhost:2181
     check: false
@@ -32,7 +26,7 @@ dubbo:
     port: -1
     name: dubbo
   scan:
-    base-packages: com.oilpeddler.wfengine.schedulecomponent.service
+    base-packages: com.oilpeddler.wfengine.taskmanagecomponent.service
   reference:
     check: false
   consumer:

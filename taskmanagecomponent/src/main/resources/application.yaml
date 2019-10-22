@@ -36,3 +36,4 @@ rocketmq:
   name-server: 127.0.0.1:9876
   producer:
     group: task-producer-group
+    send-message-timeout : 300000

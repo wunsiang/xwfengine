@@ -35,8 +35,8 @@ public class ProcessmanagecomponentApplicationTests {
 
     @Test
     public void contextLoads() {
-        //mockDefAndStartProcess();
-        mockCompleteTask();
+        mockDefAndStartProcess();
+        //mockCompleteTask();
     }
 
     /**

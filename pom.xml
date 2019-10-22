@@ -8,6 +8,7 @@
         <module>processmanagecomponent</module>
         <module>taskmanagecomponent</module>
         <module>common</module>
+        <module>wftemplateservice</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
