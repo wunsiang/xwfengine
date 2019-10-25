@@ -124,24 +124,9 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
                 wfProcessParamsRecordDO.setTiId(null);
                 wfProcessParamsRecordDO.setAiId(wfActivtityInstanceDTO.getId());
                 wfProcessParamsRecordDO.setPpRecordLevel(ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_ACTIVITY);
+                wfProcessParamsRecordDO.setPpRecordValue("0");
                 activityRecordList.add(wfProcessParamsRecordDO);
             }
-
-            /*for(WfTaskInstanceDTO wfTaskInstanceDTO : wfTaskInstanceDTOList){
-                QueryWrapper<WfProcessParamsRecordDO> queryWrapperTemp = new QueryWrapper<>();
-                queryWrapperTemp.eq("ti_id", wfTaskInstanceDTO.getId());
-                List<WfProcessParamsRecordDO> taskLevelRecordListTemp = wfProcessParamsRecordMapper.selectList(queryWrapperTemp);
-                for(WfProcessParamsRecordDO wfProcessParamsRecordDO : taskLevelRecordListTemp){
-                    for(WfProcessParamsRecordDO activityRecordDO : activityRecordList){
-                        if(wfProcessParamsRecordDO.getPpRelationId().equals(activityRecordDO.getPpRelationId())){
-                            int taskValue = Integer.parseInt(wfProcessParamsRecordDO.getPpRecordValue());
-                            int activityValue = Integer.parseInt(activityRecordDO.getPpRecordValue());
-                            activityRecordDO.setPpRecordValue(String.valueOf(taskValue&activityValue));
-                            break;
-                        }
-                    }
-                }
-            }*/
 
             //计算活动级参数并存储
             for(WfProcessParamsRecordDO activityRecordDO : activityRecordList){
@@ -155,7 +140,7 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
                 for(WfProcessParamsRecordDO wfProcessParamsRecordDO : taskRecordDoList){
                     int taskValue = Integer.parseInt(wfProcessParamsRecordDO.getPpRecordValue());
                     int activityValue = Integer.parseInt(activityRecordDO.getPpRecordValue());
-                    activityRecordDO.setPpRecordValue(String.valueOf(taskValue&activityValue));
+                    activityRecordDO.setPpRecordValue(String.valueOf(taskValue + activityValue));
                     wfProcessParamsRecordDO.setStatus(ProcessParamState.PROCESS_PARAM_FAILURE);
                     wfProcessParamsRecordMapper.updateById(wfProcessParamsRecordDO);
                     wfProcessParamsRecordMapper.deleteById(wfProcessParamsRecordDO.getId());
@@ -197,6 +182,8 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
         conditionMap = new HashMap<>();
         conditionMap.put("pp_relation_id",wfProcessParamsRelationDOList.get(0).getId());
         conditionMap.put("ai_id",wfActivtityInstanceBO.getId());
+        //流程算法只会读取活动级别的数据
+        conditionMap.put("pp_record_level",ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_ACTIVITY);
         conditionMap.put("status",ProcessParamState.PROCESS_PARAM_EFFECT);
         QueryWrapper<WfProcessParamsRecordDO> queryWrapper = new QueryWrapper<>();
         //为了兼容驳回的情况，取最新的orderByDesc

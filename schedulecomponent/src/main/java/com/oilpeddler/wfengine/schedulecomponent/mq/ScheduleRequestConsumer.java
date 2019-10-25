@@ -100,10 +100,6 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
                 return;
             //会签活动通过与操作计算结果，非会签活动直接复制任务参数即可，并存储
             wfProcessParamsRecordService.calculateActivityData(wfActivtityInstanceDTO,scheduleRequestMessage.getWfTaskInstanceMessage().getId());
-            /*//！！！此时就讲所有相关活动置已完成，挪库，因为每个活动完成后都会执行到这，然后在此生成了活动数据
-            //之后相关的任务实例数据和任务参数就都没用了此时挪到历史表才能保证驳回循环时不出现历史冗余相关任务
-            //导致计算错误
-            wfTaskInstanceService.moveRelatedTaskToHistory(wfActivtityInstanceDTO.getId());*/
             //活动状态置已完成
             wfActivtityInstanceDTO.setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_COMPLETED);
             wfActivtityInstanceService.update(wfActivtityInstanceDTO);

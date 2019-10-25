@@ -46,11 +46,11 @@ public class SchedulecomponentApplicationTests {
      */
     private void mockCompleteTask(){
         //模拟业务controller收到用户提交处理表单同时提交的暗含在页面中的的已完成的任务标识和与该任务相关的必填项数据
-        String taskId = "1187637204116439041";
+        String taskId = "1187672578087895042";
         Map<String,Object> requiredData = new HashMap<>();
-        //requiredData.put("businessday",1);
-        //requiredData.put("businesspass",true);
-        requiredData.put("businessok",true);
+        //requiredData.put("businessday",6);
+        //requiredData.put("businesspass",false);
+        //requiredData.put("businessok",true);
         wfTaskInstanceService.completeTask(taskId,requiredData);
     }
     /**
