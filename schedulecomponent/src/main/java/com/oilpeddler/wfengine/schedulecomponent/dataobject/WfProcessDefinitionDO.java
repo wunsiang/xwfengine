@@ -1,4 +1,4 @@
-package com.oilpeddler.wfengine.processmanagecomponent.dataobject;
+package com.oilpeddler.wfengine.schedulecomponent.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.oilpeddler.wfengine.common.dataobject.BaseDO;
@@ -11,7 +11,7 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author wenxiang
- * @since 2019-10-07
+ * @since 2019-10-23
  */
 @Data
 @Accessors(chain = true)

@@ -1,10 +1,18 @@
-package com.oilpeddler.wfengine.processmanagecomponent.dataobject;
+package com.oilpeddler.wfengine.schedulecomponent.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.oilpeddler.wfengine.common.dataobject.BaseDO;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * <p>
+ * 流程参数关系实体
+ * </p>
+ *
+ * @author wenxiang
+ * @since 2019-10-23
+ */
 @Data
 @Accessors(chain = true)
 @TableName(value="wf_process_params_relation")

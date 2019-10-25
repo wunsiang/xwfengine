@@ -7,17 +7,18 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 流程描述文件实体
+ * 流程模板文件实体
  * </p>
  *
  * @author wenxiang
- * @since 2019-09-21
+ * @since 2019-10-23
  */
 @Data
 @Accessors(chain = true)
 @TableName(value="wf_process_template")
 public class WfProcessTemplateDO extends BaseDO {
     private static final long serialVersionUID=1L;
+
     /**
      * 流程描述文件内容
      */
@@ -27,4 +28,6 @@ public class WfProcessTemplateDO extends BaseDO {
      * 流程描述文件名称
      */
     private String ptFilename;
+
 }
+

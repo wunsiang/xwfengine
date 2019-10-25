@@ -3,6 +3,7 @@ package com.oilpeddler.wfengine.taskmanagecomponent.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.oilpeddler.wfengine.common.api.taskmanagservice.WfTaskInstanceService;
+import com.oilpeddler.wfengine.common.bo.WfTaskHistoryInstanceBO;
 import com.oilpeddler.wfengine.common.bo.WfTaskInstanceBO;
 import com.oilpeddler.wfengine.common.constant.TaskInstanceState;
 import com.oilpeddler.wfengine.common.dto.WfTaskInstanceDTO;
@@ -51,6 +52,13 @@ public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
         WfTaskInstanceMessage wfTaskInstanceMessage = WfTaskInstanceConvert.INSTANCE.convertDOToMessage(wfTaskInstanceDO);
         wfTaskInstanceMessage.setRequiredData(requiredData);
         sendScheduleRequestMessage(wfTaskInstanceMessage);
+        //进行历史记录
+        WfTaskHistoryInstanceDO wfTaskHistoryInstanceDO = WfTaskInstanceConvert.INSTANCE.convertRunToHistory(wfTaskInstanceDO);
+        wfTaskHistoryInstanceDO.setCreatetime(new Date());
+        wfTaskHistoryInstanceDO.setUpdatetime(wfTaskHistoryInstanceDO.getCreatetime());
+        wfTaskHistoryInstanceMapper.insert(wfTaskHistoryInstanceDO);
+        //从运行表中清除当前记录
+        wfTaskInstanceMapper.deleteById(wfTaskInstanceDO.getId());
         return true;
     }
 
@@ -108,6 +116,15 @@ public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
         wfTaskHistoryInstanceDO.setUpdatetime(wfTaskHistoryInstanceDO.getCreatetime());
         wfTaskHistoryInstanceMapper.insert(wfTaskHistoryInstanceDO);
         return WfTaskInstanceConvert.INSTANCE.convertDOToBO(wfTaskInstanceDO);
+    }
+
+    @Override
+    public void recordHistory(WfTaskInstanceDTO wfTaskInstanceDTO) {
+        WfTaskInstanceDO wfTaskInstanceDO = WfTaskInstanceConvert.INSTANCE.convertDTOToDO(wfTaskInstanceDTO);
+        WfTaskHistoryInstanceDO wfTaskHistoryInstanceDO = WfTaskInstanceConvert.INSTANCE.convertRunToHistory(wfTaskInstanceDO);
+        wfTaskHistoryInstanceDO.setCreatetime(new Date());
+        wfTaskHistoryInstanceDO.setUpdatetime(wfTaskHistoryInstanceDO.getCreatetime());
+        wfTaskHistoryInstanceMapper.insert(wfTaskHistoryInstanceDO);
     }
 
     private void sendScheduleRequestMessage(WfTaskInstanceMessage wfTaskInstanceMessage) {

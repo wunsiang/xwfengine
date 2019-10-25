@@ -1,5 +1,6 @@
 package com.oilpeddler.wfengine.common.api.taskmanagservice;
 
+import com.oilpeddler.wfengine.common.bo.WfTaskHistoryInstanceBO;
 import com.oilpeddler.wfengine.common.bo.WfTaskInstanceBO;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
 import com.oilpeddler.wfengine.common.dto.WfTaskInstanceDTO;
@@ -18,4 +19,6 @@ public interface WfTaskInstanceService {
     void moveRelatedTaskToHistory(String aiId);
 
     WfTaskInstanceBO save(WfTaskInstanceDTO wfTaskInstanceDTO);
+
+    void recordHistory(WfTaskInstanceDTO wfTaskInstanceDTO);
 }

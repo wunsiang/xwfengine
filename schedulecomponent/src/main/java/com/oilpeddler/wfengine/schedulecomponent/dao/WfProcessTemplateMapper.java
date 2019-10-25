@@ -6,12 +6,13 @@ import org.springframework.stereotype.Repository;
 
 /**
  * <p>
- *  流程描述文件资源表Mapper 接口
+ *  Mapper 接口
  * </p>
  *
  * @author wenxiang
- * @since 2019-09-22
+ * @since 2019-10-08
  */
 @Repository
 public interface WfProcessTemplateMapper extends BaseMapper<WfProcessTemplateDO> {
+
 }

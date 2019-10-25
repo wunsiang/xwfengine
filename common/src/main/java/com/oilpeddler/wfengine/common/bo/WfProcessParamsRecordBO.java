@@ -60,4 +60,9 @@ public class WfProcessParamsRecordBO implements Serializable {
      */
     private String ppType;
 
+    /**
+     * 参数记录级别
+     */
+    private String ppRecordLevel;
+
 }

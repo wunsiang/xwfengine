@@ -1,26 +1,21 @@
-package com.oilpeddler.wfengine.processmanagecomponent.service.impl;
+package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.oilpeddler.wfengine.common.api.processmanagservice.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.common.api.scheduleservice.WfActivtityInstanceService;
-import com.oilpeddler.wfengine.common.api.taskmanagservice.WfTaskInstanceService;
+import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
 import com.oilpeddler.wfengine.common.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.common.constant.ActivityInstanceCategory;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
-import com.oilpeddler.wfengine.common.dto.WfTaskInstanceDTO;
-import com.oilpeddler.wfengine.processmanagecomponent.constant.ProcessParamState;
-import com.oilpeddler.wfengine.processmanagecomponent.convert.WfProcessParamsRecordConvert;
-import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessInstanceMapper;
-import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessParamsRecordMapper;
-import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessParamsRelationMapper;
-import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessInstanceDO;
-import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessParamsRecordDO;
-import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessParamsRelationDO;
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import org.apache.dubbo.config.annotation.Reference;
-import org.apache.dubbo.config.annotation.Service;
+import com.oilpeddler.wfengine.schedulecomponent.constant.ProcessParamRecordLevel;
+import com.oilpeddler.wfengine.schedulecomponent.constant.ProcessParamState;
+import com.oilpeddler.wfengine.schedulecomponent.convert.WfProcessParamsRecordConvert;
+import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRecordMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRelationMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRecordDO;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRelationDO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
@@ -32,13 +27,13 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
     @Autowired
     WfProcessParamsRecordMapper wfProcessParamsRecordMapper;
 
+/*    @Autowired
+    WfProcessInstanceMapper wfProcessInstanceMapper;*/
+
+/*    @Reference
+    WfTaskInstanceService wfTaskInstanceService;*/
+
     @Autowired
-    WfProcessInstanceMapper wfProcessInstanceMapper;
-
-    @Reference
-    WfTaskInstanceService wfTaskInstanceService;
-
-    @Reference
     WfActivtityInstanceService wfActivtityInstanceService;
     /**
      * 更新record参数表中开启任务时插入行为留下的记录的值
@@ -46,7 +41,7 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
      * @param requiredData
      */
     @Override
-    public void recordRequiredData(String tiId, String pdId,String taskNo,Map<String, Object> requiredData) {
+    public void recordRequiredData(String tiId,String aiId, String pdId,String taskNo,Map<String, Object> requiredData) {
         if(requiredData == null)
             return;
         System.out.println("准备记录数据！！！");
@@ -71,7 +66,9 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
                 wfProcessParamsRecordDO.setTiId(tiId);
                 wfProcessParamsRecordDO.setStatus(ProcessParamState.PROCESS_PARAM_EFFECT);
                 wfProcessParamsRecordDO.setCreatetime(new Date());
+                wfProcessParamsRecordDO.setAiId(aiId);
                 wfProcessParamsRecordDO.setUpdatetime(wfProcessParamsRecordDO.getUpdatetime());
+                wfProcessParamsRecordDO.setPpRecordLevel(ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_TASK);
                 wfProcessParamsRecordMapper.insert(wfProcessParamsRecordDO);
             }
         }
@@ -84,24 +81,41 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
             Map<String,Object> conditionMap = new HashMap<>();
             conditionMap.put("ti_id",tiId);
             conditionMap.put("status",ProcessParamState.PROCESS_PARAM_EFFECT);
+            conditionMap.put("pp_record_level",ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_TASK);
             List<WfProcessParamsRecordDO> wfProcessParamsRecordDOList = wfProcessParamsRecordMapper.selectByMap(conditionMap);
             for(WfProcessParamsRecordDO wfProcessParamsRecordDO : wfProcessParamsRecordDOList){
+                String deleteId = wfProcessParamsRecordDO.getId();
+                //TODO 1025新增之前如果有驳回的循环操作生成过改活动级别参数的话就先置失效，后面有了历史库再挪过去
+                QueryWrapper<WfProcessParamsRecordDO> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("pp_relation_id", wfProcessParamsRecordDO.getPpRelationId());
+                queryWrapper.eq("ai_id", wfProcessParamsRecordDO.getAiId());
+                queryWrapper.eq("status",ProcessParamState.PROCESS_PARAM_EFFECT);
+                queryWrapper.eq("pp_record_level",ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_ACTIVITY);
+                List<WfProcessParamsRecordDO> wfProcessParamsRecordDOPreList = wfProcessParamsRecordMapper.selectList(queryWrapper);
+                for(WfProcessParamsRecordDO wfProcessParamsRecordPreDO : wfProcessParamsRecordDOPreList){
+                    wfProcessParamsRecordPreDO.setStatus(ProcessParamState.PROCESS_PARAM_FAILURE);
+                    wfProcessParamsRecordMapper.updateById(wfProcessParamsRecordPreDO);
+                }
                 wfProcessParamsRecordDO.setId(null);
                 wfProcessParamsRecordDO.setTiId(null);
                 wfProcessParamsRecordDO.setAiId(wfActivtityInstanceDTO.getId());
                 wfProcessParamsRecordDO.setCreatetime(new Date());
                 wfProcessParamsRecordDO.setUpdatetime(wfProcessParamsRecordDO.getCreatetime());
                 wfProcessParamsRecordDO.setStatus(ProcessParamState.PROCESS_PARAM_EFFECT);
+                wfProcessParamsRecordDO.setPpRecordLevel(ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_ACTIVITY);
                 wfProcessParamsRecordMapper.insert(wfProcessParamsRecordDO);
+                //TODO 后续增加参数历史表后将任务数据记录在历史表中
+                //1025新增，生成活动数据后就删除相关任务数据
+                wfProcessParamsRecordMapper.deleteById(deleteId);
             }
         }else {//TODO 会签活动，所有任务数据相与，暂时版本，待优化
-            List<WfTaskInstanceDTO> wfTaskInstanceDTOList = wfTaskInstanceService.findRelatedTaskList(wfActivtityInstanceDTO.getId());
+            //List<WfTaskInstanceDTO> wfTaskInstanceDTOList = wfTaskInstanceService.findRelatedTaskList(wfActivtityInstanceDTO.getId());
             //逻辑上应该不会出现这种活动没有相关任务的情况
-            if(wfTaskInstanceDTOList.size() == 0)
-                return;
+/*            if(wfTaskInstanceDTOList.size() == 0)
+                return;*/
             Map<String,Object> conditionMap = new HashMap<>();
             QueryWrapper<WfProcessParamsRecordDO> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("ti_id", wfTaskInstanceDTOList.get(0).getId());
+            queryWrapper.eq("ti_id", tiId);
             List<WfProcessParamsRecordDO> taskLevelRecordList = wfProcessParamsRecordMapper.selectList(queryWrapper);
             List<WfProcessParamsRecordDO> activityRecordList = new ArrayList<>();
             for(WfProcessParamsRecordDO wfProcessParamsRecordDO : taskLevelRecordList){
@@ -109,9 +123,11 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
                 wfProcessParamsRecordDO.setCreatetime(wfProcessParamsRecordDO.getUpdatetime());
                 wfProcessParamsRecordDO.setTiId(null);
                 wfProcessParamsRecordDO.setAiId(wfActivtityInstanceDTO.getId());
+                wfProcessParamsRecordDO.setPpRecordLevel(ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_ACTIVITY);
                 activityRecordList.add(wfProcessParamsRecordDO);
             }
-            for(WfTaskInstanceDTO wfTaskInstanceDTO : wfTaskInstanceDTOList){
+
+            /*for(WfTaskInstanceDTO wfTaskInstanceDTO : wfTaskInstanceDTOList){
                 QueryWrapper<WfProcessParamsRecordDO> queryWrapperTemp = new QueryWrapper<>();
                 queryWrapperTemp.eq("ti_id", wfTaskInstanceDTO.getId());
                 List<WfProcessParamsRecordDO> taskLevelRecordListTemp = wfProcessParamsRecordMapper.selectList(queryWrapperTemp);
@@ -125,25 +141,57 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
                         }
                     }
                 }
-            }
+            }*/
 
+            //计算活动级参数并存储
             for(WfProcessParamsRecordDO activityRecordDO : activityRecordList){
                 activityRecordDO.setId(null);
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("pp_relation_id", activityRecordDO.getPpRelationId());
+                queryWrapper.eq("ai_id", activityRecordDO.getAiId());
+                queryWrapper.eq("status",ProcessParamState.PROCESS_PARAM_EFFECT);
+                queryWrapper.eq("pp_record_level",ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_TASK);
+                List<WfProcessParamsRecordDO> taskRecordDoList = wfProcessParamsRecordMapper.selectList(queryWrapper);
+                for(WfProcessParamsRecordDO wfProcessParamsRecordDO : taskRecordDoList){
+                    int taskValue = Integer.parseInt(wfProcessParamsRecordDO.getPpRecordValue());
+                    int activityValue = Integer.parseInt(activityRecordDO.getPpRecordValue());
+                    activityRecordDO.setPpRecordValue(String.valueOf(taskValue&activityValue));
+                    wfProcessParamsRecordDO.setStatus(ProcessParamState.PROCESS_PARAM_FAILURE);
+                    wfProcessParamsRecordMapper.updateById(wfProcessParamsRecordDO);
+                    wfProcessParamsRecordMapper.deleteById(wfProcessParamsRecordDO.getId());
+                    //TODO 后期增加参数历史表，将参数记录移到历史表
+                }
+                /**
+                 * 驳回情况些可能会出现一个参数多条记录，虽然在取得时候也做了只取最新的一条的
+                 * 限制，但还是也把之前的置为失效，安全起见。
+                 * TODO 其实这应该删除之前的活动数据，并转移到历史库
+                 */
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("pp_relation_id", activityRecordDO.getPpRelationId());
+                queryWrapper.eq("ai_id", activityRecordDO.getAiId());
+                queryWrapper.eq("status",ProcessParamState.PROCESS_PARAM_EFFECT);
+                queryWrapper.eq("pp_record_level",ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_ACTIVITY);
+                List<WfProcessParamsRecordDO> wfProcessParamsRecordDOList = wfProcessParamsRecordMapper.selectList(queryWrapper);
+                for(WfProcessParamsRecordDO wfProcessParamsRecordDO : wfProcessParamsRecordDOList){
+                    wfProcessParamsRecordDO.setStatus(ProcessParamState.PROCESS_PARAM_FAILURE);
+                    wfProcessParamsRecordMapper.updateById(wfProcessParamsRecordDO);
+                }
                 wfProcessParamsRecordMapper.insert(activityRecordDO);
             }
+
+
         }
     }
 
     @Override
-    public WfProcessParamsRecordBO getByEnginePpName(String enginePpName, String processInstanceId, String usertaskNo) {
+    public WfProcessParamsRecordBO getByEnginePpName(String enginePpName, String processInstanceId,String pdId, String usertaskNo) {
         Map<String,Object> conditionMap = new HashMap<>();
         conditionMap.put("pi_id",processInstanceId);
         conditionMap.put("usertask_no",usertaskNo);
         WfActivtityInstanceBO wfActivtityInstanceBO = wfActivtityInstanceService.getOneByMap(conditionMap);
-        WfProcessInstanceDO wfProcessInstanceDO = wfProcessInstanceMapper.selectById(processInstanceId);
         conditionMap = new HashMap<>();
         conditionMap.put("engine_pp_name",enginePpName);
-        conditionMap.put("pd_id",wfProcessInstanceDO.getPdId());
+        conditionMap.put("pd_id",pdId);
         conditionMap.put("task_no",usertaskNo);
         List<WfProcessParamsRelationDO> wfProcessParamsRelationDOList = wfProcessParamsRelationMapper.selectByMap(conditionMap);
         conditionMap = new HashMap<>();

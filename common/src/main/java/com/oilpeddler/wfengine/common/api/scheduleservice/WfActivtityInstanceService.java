@@ -17,6 +17,6 @@ public interface WfActivtityInstanceService {
 
     void clearActivityOfProcess(String piId);
 
-    List<WfActivtityInstanceBO> addActivityList(List<BaseElement> userTaskList, String piId);
+    List<WfActivtityInstanceBO> addActivityList(List<BaseElement> userTaskList, String piId, String pdId);
 
 }

@@ -1,4 +1,4 @@
-package com.oilpeddler.wfengine.processmanagecomponent.constant;
+package com.oilpeddler.wfengine.schedulecomponent.constant;
 
 /**
  * <p>
@@ -7,7 +7,7 @@ package com.oilpeddler.wfengine.processmanagecomponent.constant;
  * </p>
  *
  * @author wenxiang
- * @since 2019-10-09
+ * @since 2019-10-23
  */
 public class ProcessParamState {
     public static final String PROCESS_PARAM_EFFECT = "01";	    //01生效

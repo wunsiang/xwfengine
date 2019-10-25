@@ -56,4 +56,9 @@ public class WfProcessParamsRecordDTO implements Serializable {
      */
     private String status;
 
+    /**
+     * 参数记录级别
+     */
+    private String ppRecordLevel;
+
 }

@@ -36,9 +36,9 @@ public class PathParseUtil {
      * @param processInstanceId
      * @return
      */
-    public void startHandle(List<BaseElement> elementList, Process process,List<BaseElement> addList,List<BaseElement> delList,String processInstanceId){
+    public void startHandle(List<BaseElement> elementList, Process process,List<BaseElement> addList,List<BaseElement> delList,String processInstanceId,String pdId){
         startEventPathParseHandler.setNextPathParseHandler(exclusiveGatewayPathParseHandler);
         exclusiveGatewayPathParseHandler.setNextPathParseHandler(parallelGatewayPathParseHandler);
-        startEventPathParseHandler.parseOrPass(elementList,process,addList,delList,processInstanceId);
+        startEventPathParseHandler.parseOrPass(elementList,process,addList,delList,processInstanceId,pdId);
     }
 }

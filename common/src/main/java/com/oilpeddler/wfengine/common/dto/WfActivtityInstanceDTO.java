@@ -59,5 +59,13 @@ public class WfActivtityInstanceDTO implements Serializable {
 
     private String piId;
 
+    /**
+     * 流程定义标识(外键)
+     */
+    private String pdId;
 
+    /**
+     * 当前活动未完成实例个数
+     */
+    private int activeTiNum;
 }

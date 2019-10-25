@@ -21,16 +21,17 @@ dubbo:
     name: taskmanagecomponent-service
   registry:
     address: zookeeper://localhost:2181
-    check: false
+#    check: false
   protocol:
     port: -1
     name: dubbo
   scan:
     base-packages: com.oilpeddler.wfengine.taskmanagecomponent.service
-  reference:
-    check: false
+#  reference:
+#    check: false
   consumer:
-    check: false
+    timeout: 30000
+#    check: false
 # rocketmq
 rocketmq:
   name-server: 127.0.0.1:9876

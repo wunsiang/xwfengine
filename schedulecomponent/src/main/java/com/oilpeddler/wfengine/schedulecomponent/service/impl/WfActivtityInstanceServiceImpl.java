@@ -1,6 +1,7 @@
 package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.oilpeddler.wfengine.common.api.scheduleservice.WfActivtityInstanceService;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
@@ -66,7 +67,7 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
     }
 
     @Override
-    public List<WfActivtityInstanceBO> addActivityList(List<BaseElement> userTaskList, String piId) {
+    public List<WfActivtityInstanceBO> addActivityList(List<BaseElement> userTaskList, String piId, String pdId) {
         List<WfActivtityInstanceBO> wfActivtityInstanceBOList = new ArrayList<>();
         for(BaseElement baseElement : userTaskList){
             UserTask userTask = (UserTask)baseElement;
@@ -76,6 +77,7 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
                     .eq("usertask_no",userTask.getNo());
             WfActivtityInstanceDO wfActivtityInstanceDO = wfActivtityInstanceMapper.selectOne(queryWrapper);
             if(wfActivtityInstanceDO != null){
+                wfActivtityInstanceDO.setActiveTiNum(userTask.getAssignees().size());
                 wfActivtityInstanceDO.setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_RUNNING);
                 wfActivtityInstanceDO.setUpdatetime(new Date());
                 wfActivtityInstanceMapper.updateById(wfActivtityInstanceDO);
@@ -91,11 +93,15 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
                         .setBfId(userTask.getPageKey())
                         .setUsertaskNo(userTask.getNo())
                         .setAiCategory(userTask.getTaskType())
-                        .setPiId(piId);
+                        .setPiId(piId)
+                        .setPdId(pdId)
+                        .setActiveTiNum(userTask.getAssignees().size());
                 wfActivtityInstanceDO.setCreatetime(new Date());
                 wfActivtityInstanceDO.setUpdatetime(wfActivtityInstanceDO.getCreatetime());
                 wfActivtityInstanceMapper.insert(wfActivtityInstanceDO);
                 wfActivtityInstanceBOList.add(WfActivtityInstanceConvert.INSTANCE.convertDOToBO(wfActivtityInstanceDO));
+                //1025新增，之前活动开启时忘了打时间戳
+                wfActivityHistoryInstanceMapper.insert(WfActivtityInstanceConvert.INSTANCE.convertRunDOToHistoryDO(wfActivtityInstanceDO));
             }
         }
         return wfActivtityInstanceBOList;

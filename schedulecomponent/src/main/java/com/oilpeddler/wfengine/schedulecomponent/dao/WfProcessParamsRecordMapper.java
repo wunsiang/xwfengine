@@ -1,7 +1,7 @@
-package com.oilpeddler.wfengine.processmanagecomponent.dao;
+package com.oilpeddler.wfengine.schedulecomponent.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessParamsRecordDO;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRecordDO;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
  * </p>
  *
  * @author wenxiang
- * @since 2019-10-09
+ * @since 2019-10-23
  */
 @Repository
 public interface WfProcessParamsRecordMapper extends BaseMapper<WfProcessParamsRecordDO> {

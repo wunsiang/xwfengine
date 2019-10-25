@@ -12,14 +12,13 @@ public interface ScheduleManageService {
     /**
      *
      * @param process
-     * @param requiredData
      * @param processInstanceId
      * @return 返回值为空代表当前还有关联任务未完成，返回值为endevent说明要结束流程
      */
-    List<BaseElement> getFirstActivity(Process process,String processInstanceId);
+    List<BaseElement> getFirstActivity(Process process,String processInstanceId,String pdId);
 
     //返回值为空代表当前还有关联任务未完成，返回值为endevent说明要结束流程
-    List<BaseElement> getNextSteps(UserTask currentUserTask, Process process,String processInstanceId);
+    List<BaseElement> getNextSteps(UserTask currentUserTask, Process process,String processInstanceId,String pdId);
 
     UserTask findUserTaskByNo(String no,Process process);
     //boolean IsRelatedUserTaskCompleted()

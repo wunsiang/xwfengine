@@ -1,7 +1,7 @@
-package com.oilpeddler.wfengine.processmanagecomponent.dao;
+package com.oilpeddler.wfengine.schedulecomponent.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessDefinitionDO;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessDefinitionDO;
 import org.springframework.stereotype.Repository;
 
 /**

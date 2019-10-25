@@ -23,19 +23,19 @@ public class ParallelGatewayPathParseHandler extends AbstractPathParseHandler{
     @Autowired
     WfElementMapper wfElementMapper;
     @Override
-    public void parseOrPass(List<BaseElement> currentElementList,Process process,List<BaseElement> addList,List<BaseElement> delList,String processInstanceId) {
+    public void parseOrPass(List<BaseElement> currentElementList,Process process,List<BaseElement> addList,List<BaseElement> delList,String processInstanceId,String pdId) {
         List<BaseElement> currentLevelResultList = currentElementList;
         for(BaseElement currentElement : currentElementList){
             if(currentElement instanceof ParallelGateway){
                 delList.add(currentElement);
-                pathParse(currentElement,process,addList,delList,processInstanceId);
+                pathParse(currentElement,process,addList,delList,processInstanceId,pdId);
             }
         }
         //nextPathParseHandler.parseOrPass(currentLevelResultList,requiredData,process,addList,delList,processInstanceId);
     }
 
     @Override
-    protected void pathParse(BaseElement currentElement, Process process,List<BaseElement> addList,List<BaseElement> delList,String processInstanceId) {
+    protected void pathParse(BaseElement currentElement, Process process,List<BaseElement> addList,List<BaseElement> delList,String processInstanceId,String pdId) {
         ParallelGateway currentParallelGateway = (ParallelGateway)currentElement;
         //ToDo wenxiang这块其实只可能有一个元素，还在考虑后期要不要直接改成get(0)，好像也不能一个元素也没有
         //若为聚合并行网关，则需要修改并判定当前没获取到的令牌数目，若还有令牌没拿到，则等待

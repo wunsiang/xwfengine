@@ -1,6 +1,5 @@
 package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
-import com.oilpeddler.wfengine.common.api.processmanagservice.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
 import com.oilpeddler.wfengine.common.element.*;
 import com.oilpeddler.wfengine.common.element.Process;
@@ -10,7 +9,6 @@ import com.oilpeddler.wfengine.schedulecomponent.dao.WfActivityHistoryInstanceMa
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivityHistoryInstanceDO;
 import com.oilpeddler.wfengine.schedulecomponent.service.ScheduleManageService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.PathParseUtil;
-import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,14 +21,12 @@ public class ScheduleManageServiceImpl implements ScheduleManageService {
     @Autowired
     PathParseUtil pathParseUtil;
 
-    @Reference
-    WfProcessParamsRecordService wfProcessParamsRecordService;
 
     @Autowired
     WfActivityHistoryInstanceMapper wfActivityHistoryInstanceMapper;
 
     @Override
-    public List<BaseElement> getFirstActivity(Process process,String processInstanceId) {
+    public List<BaseElement> getFirstActivity(Process process,String processInstanceId,String pdId) {
         StartEvent startEvent = null;
         for(Event event : process.getEventList()){
             if(event instanceof StartEvent){
@@ -46,7 +42,7 @@ public class ScheduleManageServiceImpl implements ScheduleManageService {
             for(BaseElement element : nextSteps){
                 if(element instanceof Gateway || element instanceof StartEvent){
                     flag = false;
-                    pathParseUtil.startHandle(nextSteps,process,addList,delList,processInstanceId);
+                    pathParseUtil.startHandle(nextSteps,process,addList,delList,processInstanceId,pdId);
                     break;
                 }
             }
@@ -59,7 +55,7 @@ public class ScheduleManageServiceImpl implements ScheduleManageService {
     }
 
     @Override
-    public List<BaseElement> getNextSteps(UserTask currentUserTask, Process process,String processInstanceId) {
+    public List<BaseElement> getNextSteps(UserTask currentUserTask, Process process,String processInstanceId,String pdId) {
         BaseElement nextElement = BpmnXMLConvertUtil.findMatchElement(currentUserTask.getOutgoingFlows().get(0).getTargetRef(),process);
         List<BaseElement> nextSteps = new ArrayList<>();
         nextSteps.add(nextElement);
@@ -70,7 +66,7 @@ public class ScheduleManageServiceImpl implements ScheduleManageService {
              for(BaseElement element : nextSteps){
                  if(element instanceof Gateway){
                      flag = false;
-                     pathParseUtil.startHandle(nextSteps,process,addList,delList,processInstanceId);
+                     pathParseUtil.startHandle(nextSteps,process,addList,delList,processInstanceId,pdId);
                      break;
                  }
              }

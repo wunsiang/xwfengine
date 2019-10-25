@@ -9,7 +9,6 @@ import com.oilpeddler.wfengine.processmanagecomponent.constant.ProcessInstanceSt
 import com.oilpeddler.wfengine.processmanagecomponent.convert.WfProcessInstanceConvert;
 import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessHistoryInstanceMapper;
 import com.oilpeddler.wfengine.processmanagecomponent.dao.WfProcessInstanceMapper;
-import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessDefinitionDO;
 import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessHistoryInstanceDO;
 import com.oilpeddler.wfengine.processmanagecomponent.dataobject.WfProcessInstanceDO;
 import org.apache.dubbo.config.annotation.Service;
