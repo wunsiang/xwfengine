@@ -1,8 +1,8 @@
-package com.oilpeddler.wfengine.common.tools;
+package com.oilpeddler.wfengine.schedulecomponent.tools;
 
 import com.oilpeddler.wfengine.common.constant.BpmnXMLConstants;
-import com.oilpeddler.wfengine.common.element.Process;
-import com.oilpeddler.wfengine.common.element.*;
+import com.oilpeddler.wfengine.schedulecomponent.element.*;
+import com.oilpeddler.wfengine.schedulecomponent.element.Process;
 import org.dom4j.*;
 
 import java.util.ArrayList;
@@ -52,7 +52,11 @@ public class BpmnXMLConvertUtil {
                 }
             }
             generateOutAndInGoings(bpmnModel.getProcess());
-
+            //TODO 增加一个给sequenceflow置源和目标节点的方法
+            for(SequenceFlow sequenceFlow : bpmnModel.getProcess().getSequenceFlowList()){
+                sequenceFlow.setFrom(findMatchElement(sequenceFlow.getSourceRef(),bpmnModel.getProcess()));
+                sequenceFlow.setTo(findMatchElement(sequenceFlow.getTargetRef(),bpmnModel.getProcess()));
+            }
             return bpmnModel;
         } catch (DocumentException e) {
             e.printStackTrace();
@@ -117,7 +121,8 @@ public class BpmnXMLConvertUtil {
                     process.getGatewayList().add(ConvertToparallelGateway(currentElement));
                     break;
                 case BpmnXMLConstants.ELEMENT_EVENT_START:
-                    process.getEventList().add(ConvertToStartEvent(currentElement));
+                    process.setStartEvent(ConvertToStartEvent(currentElement));
+                    process.getEventList().add(process.getStartEvent());
                     break;
                 case BpmnXMLConstants.ELEMENT_EVENT_END:
                     process.getEventList().add(ConvertToEndEvent(currentElement));
@@ -272,8 +277,8 @@ public class BpmnXMLConvertUtil {
                 case BpmnXMLConstants.ATTRIBUTE_NAME:
                     parallelGateway.setName(attribute.getValue());
                     break;
-                case BpmnXMLConstants.ATTRIBUTE_GATEWAY_RELATEDGATEWAY:
-                    parallelGateway.setRelatedGateWay(attribute.getValue());
+/*                case BpmnXMLConstants.ATTRIBUTE_GATEWAY_RELATEDGATEWAY:
+                    parallelGateway.setRelatedGateWay(attribute.getValue());*/
             }
         }
         return parallelGateway;

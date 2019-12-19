@@ -22,7 +22,7 @@ public class BpmnXMLConstants {
     public static final String ATTRIBUTE_SEQUENCE_FLOW_SOURCE_REF = "sourceRef";
     public static final String ATTRIBUTE_SEQUENCE_FLOW_TARGET_REF = "targetRef";
     public static final String ATTRIBUTE_SEQUENCE_FLOW_PARAMLIST = "paramList";
-    public static final String ATTRIBUTE_GATEWAY_RELATEDGATEWAY = "relatedGateWay";
+    //public static final String ATTRIBUTE_GATEWAY_RELATEDGATEWAY = "relatedGateWay";
 
 
     //definitions根节点属性

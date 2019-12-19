@@ -1,4 +1,4 @@
-package com.oilpeddler.wfengine.common.element;
+package com.oilpeddler.wfengine.schedulecomponent.element;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

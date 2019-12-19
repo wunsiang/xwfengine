@@ -1,9 +1,11 @@
-package com.oilpeddler.wfengine.common.element;
+package com.oilpeddler.wfengine.schedulecomponent.element;
 
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.List;
 
 
 /**
@@ -20,5 +22,6 @@ public class ParallelGateway extends Gateway implements Serializable {
     private static final long serialVersionUID = 1L;
     //分支和聚合网关之间的关联
     //protected ParallelGateway relatedGateWay;
-    protected String relatedGateWay;
+/*    protected String relatedGateWay;*/
+
 }

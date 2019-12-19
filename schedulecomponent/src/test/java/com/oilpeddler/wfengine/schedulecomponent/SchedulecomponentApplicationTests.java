@@ -1,15 +1,13 @@
 package com.oilpeddler.wfengine.schedulecomponent;
 
 import com.oilpeddler.wfengine.common.api.processmanagservice.WfProcessInstanceService;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessDefinitionService;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessTemplateService;
 import com.oilpeddler.wfengine.common.api.taskmanagservice.WfTaskInstanceService;
 import com.oilpeddler.wfengine.common.bo.WfProcessDefinitionBO;
-import com.oilpeddler.wfengine.common.bo.WfProcessInstanceBO;
 import com.oilpeddler.wfengine.common.dto.WfProcessInstanceStartDTO;
 import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
+import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessDefinitionService;
+import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessTemplateService;
 import org.apache.dubbo.config.annotation.Reference;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RunWith(SpringRunner.class)
@@ -46,7 +43,7 @@ public class SchedulecomponentApplicationTests {
      */
     private void mockCompleteTask(){
         //模拟业务controller收到用户提交处理表单同时提交的暗含在页面中的的已完成的任务标识和与该任务相关的必填项数据
-        String taskId = "1187672578087895042";
+        String taskId = "1207625052577722369";
         Map<String,Object> requiredData = new HashMap<>();
         //requiredData.put("businessday",6);
         //requiredData.put("businesspass",false);
@@ -60,7 +57,7 @@ public class SchedulecomponentApplicationTests {
         /**
          * 模拟流程图提交流程图并定义一个新的流程模板
          */
-        WfProcessTemplateDTO wfProcessTemplateDTO = wfProcessTemplateService.selectByPtFilename("汇报用流程图");
+        WfProcessTemplateDTO wfProcessTemplateDTO = wfProcessTemplateService.selectByPtFilename("新架构流程图");
         WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.generatePDFromTemplateFile(wfProcessTemplateDTO);
         /**
          * 模拟开发人员配置业务表单参数名称和流程引擎参数映射关系,演示的时候直接在数据库里面配吧，直观又省事

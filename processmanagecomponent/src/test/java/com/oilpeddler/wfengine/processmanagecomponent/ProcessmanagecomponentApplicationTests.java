@@ -1,20 +1,9 @@
 package com.oilpeddler.wfengine.processmanagecomponent;
 
-import com.oilpeddler.wfengine.common.api.processmanagservice.WfProcessInstanceService;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessDefinitionService;
-import com.oilpeddler.wfengine.common.api.taskmanagservice.WfTaskInstanceService;
-import com.oilpeddler.wfengine.common.bo.WfProcessDefinitionBO;
-import com.oilpeddler.wfengine.common.dto.WfProcessInstanceStartDTO;
-import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
-import org.apache.dubbo.config.annotation.Reference;
-import org.junit.Test;
+
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest

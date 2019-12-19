@@ -1,11 +1,11 @@
 package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessTemplateService;
 import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfProcessTemplateConvert;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessTemplateMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessTemplateDO;
+import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

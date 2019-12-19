@@ -1,4 +1,4 @@
-package com.oilpeddler.wfengine.common.api.scheduleservice;
+package com.oilpeddler.wfengine.schedulecomponent.service;
 
 import com.oilpeddler.wfengine.common.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;

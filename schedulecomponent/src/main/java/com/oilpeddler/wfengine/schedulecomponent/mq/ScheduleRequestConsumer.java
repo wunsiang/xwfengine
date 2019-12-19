@@ -2,31 +2,22 @@ package com.oilpeddler.wfengine.schedulecomponent.mq;
 
 
 
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfActivtityInstanceService;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessDefinitionService;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessParamsRecordService;
+
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
 import com.oilpeddler.wfengine.common.bo.WfProcessDefinitionBO;
 import com.oilpeddler.wfengine.common.constant.ActivityInstanceState;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
-import com.oilpeddler.wfengine.common.element.BaseElement;
-import com.oilpeddler.wfengine.common.element.BpmnModel;
-import com.oilpeddler.wfengine.common.element.EndEvent;
-import com.oilpeddler.wfengine.common.element.UserTask;
-import com.oilpeddler.wfengine.common.message.ProcessRequestMessage;
 import com.oilpeddler.wfengine.common.message.ScheduleRequestMessage;
-import com.oilpeddler.wfengine.common.message.TaskRequestMessage;
-import com.oilpeddler.wfengine.common.tools.BpmnXMLConvertUtil;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfActivtityInstanceConvert;
-import com.oilpeddler.wfengine.schedulecomponent.service.ScheduleManageService;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
+import com.oilpeddler.wfengine.schedulecomponent.element.BpmnModel;
+import com.oilpeddler.wfengine.schedulecomponent.service.*;
+import com.oilpeddler.wfengine.schedulecomponent.tools.BpmnXMLConvertUtil;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * <p>
@@ -44,14 +35,8 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
     @Autowired
     ScheduleManageService scheduleManageService;
 
-    @Resource
-    private RocketMQTemplate rocketMQTemplate;
-
     @Autowired
     WfProcessDefinitionService wfProcessDefinitionService;
-
-/*    @Reference
-    WfTaskInstanceService wfTaskInstanceService;*/
 
     @Autowired
     WfProcessParamsRecordService wfProcessParamsRecordService;
@@ -59,8 +44,8 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
     @Autowired
     WfActivtityInstanceService wfActivtityInstanceService;
 
-/*    @Reference
-    WfProcessInstanceService wfProcessInstanceService;*/
+    @Autowired
+    TokenService tokenService;
 
     @Override
     public void onMessage(ScheduleRequestMessage scheduleRequestMessage) {
@@ -69,24 +54,14 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
         if(scheduleRequestMessage.getWfProcessInstanceMessage() != null){
             WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getWfProcessDefinitionById(scheduleRequestMessage.getWfProcessInstanceMessage().getPdId());
             BpmnModel bpmnModel = BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent());
-            //返回值为endevent说明要结束流程
-            //目前版本开启新流程时没啥必填项数据，所以为了简单，就先new个hashmap算了
-            List<BaseElement> readyExecuteUserTaskList =  scheduleManageService.getFirstActivity(bpmnModel.getProcess(),scheduleRequestMessage.getWfProcessInstanceMessage().getId(),wfProcessDefinitionBO.getId());
-            if(readyExecuteUserTaskList == null || readyExecuteUserTaskList.size() == 0){
-                //返回值为空代表当前还有关联任务未完成,等待
-                return;
-            }
-            //按照我们的规则，应该EndEvent的入度只能唯一，并且真正能执行到的只有一个
-            else if(readyExecuteUserTaskList.get(0) instanceof EndEvent){
-                //发消息给流程管理器关闭流程
-                sendProcessRequestMessage(scheduleRequestMessage.getWfProcessInstanceMessage().getId());
-            }else {
-                //调度任务管理器做接下来的任务
-                //开启新活动，如已存在（驳回循环情况）则更新活动状态
-                //TODO wenxiang后面可以考虑在新开启活动时判断如果是驳回情况就去参数表里将之前的活动数据移到历史参数库中
-                List<WfActivtityInstanceBO> wfActivtityInstanceBOList = wfActivtityInstanceService.addActivityList(readyExecuteUserTaskList,scheduleRequestMessage.getWfProcessInstanceMessage().getId(),wfProcessDefinitionBO.getId());
-                sendTaskRequestMessage(wfActivtityInstanceBOList);
-            }
+            //新版从这开始，新建一个token
+            Token rootToken = new Token();
+            rootToken.setPiId(scheduleRequestMessage.getWfProcessInstanceMessage().getId());
+            rootToken.setPdId(scheduleRequestMessage.getWfProcessInstanceMessage().getPdId());
+            //no在start任务里面配
+            rootToken.setParentId("0");
+            bpmnModel.getProcess().getStartEvent().execute(rootToken);
+
         }else if(scheduleRequestMessage.getWfTaskInstanceMessage() != null) {
             //根据接收到的WfTaskInstanceMessage判断接下来的流转情况
             //记录任务带的流程参数数据(任务级)
@@ -108,33 +83,10 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
             //之后开始找接下来的活动，返回值为空代表当前还有关联活动未完成，返回值为endevent说明要结束流程
             WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getWfProcessDefinitionById(wfActivtityInstanceBO.getPdId());
             BpmnModel bpmnModel = BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent());
-            UserTask currentUserTask = scheduleManageService.findUserTaskByNo(wfActivtityInstanceBO.getUsertaskNo(),bpmnModel.getProcess());
-            List<BaseElement> readyExecuteUserTaskList =  scheduleManageService.getNextSteps(currentUserTask,bpmnModel.getProcess(),wfActivtityInstanceBO.getPiId(),wfActivtityInstanceBO.getPdId());
-            if(readyExecuteUserTaskList == null || readyExecuteUserTaskList.size() == 0){
-                //返回值为空代表当前还有关联任务未完成,等待
-                return;
-            }
-            //按照我们的规则，应该EndEvent的入度只能唯一，并且真正能执行到的只有一个
-            else if(readyExecuteUserTaskList.get(0) instanceof EndEvent){
-                //发消息给流程管理器关闭流程,流程实例由流程管理器负责扫尾
-                sendProcessRequestMessage(wfActivtityInstanceBO.getPiId());
-                //流程所属活动扫尾
-                wfActivtityInstanceService.clearActivityOfProcess(wfActivtityInstanceBO.getPiId());
-            }else {
-                //调度任务管理器做接下来的任务
-                //开启新活动，如已存在（驳回循环情况）则更新活动状态
-                //TODO wenxiang后面可以考虑在新开启活动时判断如果是驳回情况就去参数表里将之前的活动数据移到历史参数库中
-                List<WfActivtityInstanceBO> wfActivtityInstanceBOList = wfActivtityInstanceService.addActivityList(readyExecuteUserTaskList,wfActivtityInstanceBO.getPiId(),wfActivtityInstanceDTO.getPdId());
-                sendTaskRequestMessage(wfActivtityInstanceBOList);
-            }
+            //Token复原，关键在子父关系一整套都要复原
+            Token cToken = tokenService.recoverTokens(wfActivtityInstanceBO.getPiId(),wfActivtityInstanceBO.getPdId(),wfActivtityInstanceBO.getUsertaskNo(),bpmnModel.getProcess());
+            cToken.signal();
         }
     }
 
-    private void sendProcessRequestMessage(String piId) {
-        rocketMQTemplate.convertAndSend(ProcessRequestMessage.TOPIC, new ProcessRequestMessage().setPiId(piId));
-    }
-
-    private void sendTaskRequestMessage(List<WfActivtityInstanceBO> wfActivtityInstanceBOList) {
-        rocketMQTemplate.convertAndSend(TaskRequestMessage.TOPIC, new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList));
-    }
 }

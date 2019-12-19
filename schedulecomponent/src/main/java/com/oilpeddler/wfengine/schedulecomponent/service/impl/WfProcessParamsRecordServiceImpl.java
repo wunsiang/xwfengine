@@ -1,8 +1,6 @@
 package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfActivtityInstanceService;
-import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
 import com.oilpeddler.wfengine.common.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.common.constant.ActivityInstanceCategory;
@@ -14,6 +12,8 @@ import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRecordMapper
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRelationMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRecordDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRelationDO;
+import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
+import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

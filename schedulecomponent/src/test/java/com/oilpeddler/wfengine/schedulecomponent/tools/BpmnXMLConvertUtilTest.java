@@ -1,8 +1,6 @@
 package com.oilpeddler.wfengine.schedulecomponent.tools;
 
-import com.oilpeddler.wfengine.common.element.BpmnModel;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessTemplateMapper;
-import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessTemplateDO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

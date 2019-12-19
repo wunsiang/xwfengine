@@ -1,4 +1,4 @@
-package com.oilpeddler.wfengine.common.element;
+package com.oilpeddler.wfengine.schedulecomponent.element;
 
 
 import lombok.Data;
@@ -52,4 +52,6 @@ public class Process extends BaseElement implements Serializable {
      * 流程网关集合
      */
     protected List<Gateway> gatewayList;
+
+    protected Event startEvent;
 }
