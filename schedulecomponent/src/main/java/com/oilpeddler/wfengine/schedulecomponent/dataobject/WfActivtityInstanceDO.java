@@ -27,6 +27,16 @@ public class WfActivtityInstanceDO extends BaseDO {
     private String aiAssignerId;
 
     /**
+     * 即席活动执行人
+     *//*
+    private String aiDynamicAssignerId;
+
+    *//**
+     * 即席活动执行人种类（0个人1职位）
+     *//*
+    private String aiDynamicAssignerType;*/
+
+    /**
      * 活动参与者种类（0个人1职位）
      */
     private String aiAssignerType;

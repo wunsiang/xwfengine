@@ -156,6 +156,12 @@ public class BpmnXMLConvertUtil {
                     List<String> assigneesList = Arrays.asList(assigneesArray);
                     userTask.setAssignees(assigneesList);
                     break;
+                case BpmnXMLConstants.ATTRIBUTE_TASK_USER_DYNAMIC_ASSIGNEE:
+                    userTask.setDynamicAssignees(attribute.getValue());
+                    break;
+                case BpmnXMLConstants.ATTRIBUTE_TASK_USER_DYNAMIC_ASSIGNEETYPE:
+                    userTask.setDynamicAssigneeType(attribute.getValue());
+                    break;
                 case BpmnXMLConstants.ATTRIBUTE_TASK_USER_TYPE:
                     userTask.setTaskType(attribute.getValue());
                     break;

@@ -3,6 +3,7 @@ package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
+import com.oilpeddler.wfengine.common.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.common.constant.ActivityInstanceState;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfActivtityInstanceConvert;
@@ -12,13 +13,11 @@ import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivtityInstanceD
 import com.oilpeddler.wfengine.schedulecomponent.element.BaseElement;
 import com.oilpeddler.wfengine.schedulecomponent.element.UserTask;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
+import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -37,6 +36,9 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
 
     @Autowired
     WfActivityHistoryInstanceMapper wfActivityHistoryInstanceMapper;
+
+    @Autowired
+    WfProcessParamsRecordService wfProcessParamsRecordService;
 
     @Override
     public WfActivtityInstanceBO getById(String id) {
@@ -75,8 +77,21 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
                     .eq("pi_id",piId)
                     .eq("usertask_no",userTask.getNo());
             WfActivtityInstanceDO wfActivtityInstanceDO = wfActivtityInstanceMapper.selectOne(queryWrapper);
+            List<String> assList = new ArrayList<>();//即席和固定执行人的合集
+            assList.addAll(userTask.getAssignees());
+            //即席判断与处理
+            if(userTask.getDynamicAssignees() != null && userTask.getDynamicAssignees().length() > 0){
+                String[] dynamicAssigneesParam = userTask.getDynamicAssignees().split(",");
+                WfProcessParamsRecordBO dynamicAssigneesPP = wfProcessParamsRecordService.getByEnginePpName(dynamicAssigneesParam[3],piId,pdId,dynamicAssigneesParam[0]);
+                String[] dynamicAssignees = dynamicAssigneesPP.getPpRecordValue().split(",");
+                for(String member : dynamicAssignees){
+                    assList.add(member);
+                }
+            }
+            //即席内容处理结束
             if(wfActivtityInstanceDO != null){
-                wfActivtityInstanceDO.setActiveTiNum(userTask.getAssignees().size());
+                wfActivtityInstanceDO.setAiAssignerId(JSON.toJSONString(assList));
+                wfActivtityInstanceDO.setActiveTiNum(assList.size());
                 wfActivtityInstanceDO.setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_RUNNING);
                 wfActivtityInstanceDO.setUpdatetime(new Date());
                 wfActivtityInstanceMapper.updateById(wfActivtityInstanceDO);
@@ -87,14 +102,14 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
                 wfActivtityInstanceDO = new WfActivtityInstanceDO()
                         .setAiName(userTask.getName())
                         .setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_RUNNING)
-                        .setAiAssignerId(JSON.toJSONString(userTask.getAssignees()))
+                        .setAiAssignerId(JSON.toJSONString(assList))
                         .setAiAssignerType(userTask.getAssigneeType())
                         .setBfId(userTask.getPageKey())
                         .setUsertaskNo(userTask.getNo())
                         .setAiCategory(userTask.getTaskType())
                         .setPiId(piId)
                         .setPdId(pdId)
-                        .setActiveTiNum(userTask.getAssignees().size());
+                        .setActiveTiNum(assList.size());
                 wfActivtityInstanceDO.setCreatetime(new Date());
                 wfActivtityInstanceDO.setUpdatetime(wfActivtityInstanceDO.getCreatetime());
                 wfActivtityInstanceMapper.insert(wfActivtityInstanceDO);

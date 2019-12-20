@@ -43,8 +43,10 @@ public class SchedulecomponentApplicationTests {
      */
     private void mockCompleteTask(){
         //模拟业务controller收到用户提交处理表单同时提交的暗含在页面中的的已完成的任务标识和与该任务相关的必填项数据
-        String taskId = "1207625052577722369";
+        String taskId = "1207948144969555970";
+        //String dynamicAss = "e78dsdf78678sd,sdf89s7f89sdfsd89";
         Map<String,Object> requiredData = new HashMap<>();
+        //requiredData.put("businessdynamicassignee01",dynamicAss);
         //requiredData.put("businessday",6);
         //requiredData.put("businesspass",false);
         //requiredData.put("businessok",true);
@@ -57,7 +59,7 @@ public class SchedulecomponentApplicationTests {
         /**
          * 模拟流程图提交流程图并定义一个新的流程模板
          */
-        WfProcessTemplateDTO wfProcessTemplateDTO = wfProcessTemplateService.selectByPtFilename("新架构流程图");
+        WfProcessTemplateDTO wfProcessTemplateDTO = wfProcessTemplateService.selectByPtFilename("即席流程图");
         WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.generatePDFromTemplateFile(wfProcessTemplateDTO);
         /**
          * 模拟开发人员配置业务表单参数名称和流程引擎参数映射关系,演示的时候直接在数据库里面配吧，直观又省事

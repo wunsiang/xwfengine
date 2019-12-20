@@ -168,6 +168,16 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
         }
     }
 
+    /**
+     * TODO 重要，由于目前没有模拟引擎唯一参数的生成，是直接手动写的，所以xml的参数格式比较详细，而且目前是能够做到只要
+     * 引擎生成的参数名称是流程内唯一的就可以的，但是如果引擎生成全库唯一的参数的话，再加上在record表引入全都写上piid，
+     * 可以优化这个方法
+     * @param enginePpName
+     * @param processInstanceId
+     * @param pdId
+     * @param usertaskNo
+     * @return
+     */
     @Override
     public WfProcessParamsRecordBO getByEnginePpName(String enginePpName, String processInstanceId,String pdId, String usertaskNo) {
         Map<String,Object> conditionMap = new HashMap<>();
@@ -193,4 +203,5 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
         wfProcessParamsRecordBO.setPpType(wfProcessParamsRelationDOList.get(0).getPpType());
         return wfProcessParamsRecordBO;
     }
+
 }

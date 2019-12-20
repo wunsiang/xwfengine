@@ -62,6 +62,16 @@ public class UserTask extends Node implements Serializable {
     protected String taskType;
 
     /**
+     * 即席活动执行人
+     */
+    protected String dynamicAssignees;
+
+    /**
+     * 即席活动参与人类型
+     */
+    protected String dynamicAssigneeType;
+
+    /**
      * 挂接表单页面
      */
     protected String pageKey;

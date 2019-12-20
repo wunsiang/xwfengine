@@ -17,6 +17,8 @@ public class BpmnXMLConstants {
     public static final String ATTRIBUTE_TASK_USER_ASSIGNEETYPE = "assigneeType";
     public static final String ATTRIBUTE_TASK_USER_ASSIGNEE = "assignee";
     public static final String ATTRIBUTE_TASK_USER_TYPE = "taskType";
+    public static final String ATTRIBUTE_TASK_USER_DYNAMIC_ASSIGNEE = "dynamicAssignee";
+    public static final String ATTRIBUTE_TASK_USER_DYNAMIC_ASSIGNEETYPE = "dynamicAssigneeType";
     public static final String ATTRIBUTE_TASK_USER_PAGEKEY = "pageKey";
     public static final String ATTRIBUTE_SEQUENCE_FLOW_CONDITION = "conditionExpression";
     public static final String ATTRIBUTE_SEQUENCE_FLOW_SOURCE_REF = "sourceRef";

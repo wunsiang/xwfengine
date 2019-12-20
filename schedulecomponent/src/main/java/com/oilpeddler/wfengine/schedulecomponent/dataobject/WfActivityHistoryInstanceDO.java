@@ -32,6 +32,17 @@ public class WfActivityHistoryInstanceDO extends BaseDO {
     private String aiAssignerId;
 
     /**
+     * 即席活动执行人
+     *//*
+    private String aiDynamicAssignerId;
+
+    *//**
+     * 即席活动执行人种类（0个人1职位）
+     *//*
+    private String aiDynamicAssignerType;*/
+
+
+    /**
      * 挂接业务表单主键
      */
     private String bfId;
