@@ -2,6 +2,7 @@ package com.oilpeddler.wfengine.schedulecomponent.element;
 
 import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
+import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -23,9 +24,10 @@ import java.util.List;
 @Accessors(chain = true)
 public abstract class Gateway extends Node {
 
-    private ApplicationContext applicationContext =  SpringUtil.getApplicationContext();
+    //private ApplicationContext applicationContext =  SpringUtil.getApplicationContext();
 
-    TokenMapper tokenMapper = applicationContext.getBean(TokenMapper.class);
+    //TokenMapper tokenMapper = applicationContext.getBean(TokenMapper.class);
+    //TokenMapper tokenMapper = SpringUtil.getBean(TokenMapper.class);
     /**
      * 网关名称
      */
@@ -48,6 +50,8 @@ public abstract class Gateway extends Node {
             childToken.setElementNo(no);
             childToken.setPdId(token.getPdId());
             childToken.setPiId(token.getPiId());
+            //主要是为了拿Id
+            SpringUtil.getBean(TokenMapper.class).insert(childToken);
             token.getChildren().add(childToken);
             leave(childToken,sequenceFlow);
         }
@@ -61,7 +65,7 @@ public abstract class Gateway extends Node {
                 reactivate = false;
             }else{
                 //TODO 到子令牌一个删一个，应该不会影响啥,但是等加了缓存机制之后恐怕就要修改下啦
-                tokenMapper.deleteById(concurrentToken.getId());
+                SpringUtil.getBean(TokenMapper.class).deleteById(concurrentToken.getId());
             }
         }
         //删除当前的并发子节点，父节点直接到达当前merge网关节点

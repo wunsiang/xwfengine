@@ -2,14 +2,17 @@ package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
-import com.oilpeddler.wfengine.common.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.common.constant.ActivityInstanceCategory;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
+import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.schedulecomponent.constant.ProcessParamRecordLevel;
 import com.oilpeddler.wfengine.schedulecomponent.constant.ProcessParamState;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfProcessParamsRecordConvert;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRecordMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRelationMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dao.redis.WfProcessParamsRecordCacheDao;
+import com.oilpeddler.wfengine.schedulecomponent.dao.redis.WfProcessParamsRelationCacheDao;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRecordDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRelationDO;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
@@ -35,42 +38,57 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
 
     @Autowired
     WfActivtityInstanceService wfActivtityInstanceService;
-    /**
-     * 更新record参数表中开启任务时插入行为留下的记录的值
-     * @param tiId
-     * @param requiredData
-     */
+
+    @Autowired
+    WfProcessParamsRelationCacheDao wfProcessParamsRelationCacheDao;
+
+    @Autowired
+    WfProcessParamsRecordCacheDao wfProcessParamsRecordCacheDao;
+
     @Override
-    public void recordRequiredData(String tiId,String aiId, String pdId,String taskNo,Map<String, Object> requiredData) {
+    public void recordRequiredData(String aiId, String taskNo,String pdId,Map<String, Object> requiredData) {
+        //新版本逻辑为每个任务的参数过来直接计算为活动级别参数，当然也记录任务参数
         if(requiredData == null)
             return;
-        System.out.println("准备记录数据！！！");
         for (Map.Entry<String, Object> entry : requiredData.entrySet()) {
-            WfProcessParamsRecordDO wfProcessParamsRecordDO = new WfProcessParamsRecordDO();
-            Map<String, Object> conditionMap = new HashMap<>();
-            conditionMap.put("business_name",entry.getKey());
-            conditionMap.put("task_no",taskNo);
-            conditionMap.put("pd_id",pdId);
-            List<WfProcessParamsRelationDO> wfProcessParamsRelationDOList = wfProcessParamsRelationMapper.selectByMap(conditionMap);
-            //TODO 安全检查，验重
-            if(wfProcessParamsRelationDOList.size() == 1){
-                wfProcessParamsRecordDO.setPpRelationId(wfProcessParamsRelationDOList.get(0).getId());
-                String val;
-                if(entry.getValue() instanceof  String)
-                    val = (String) entry.getValue();
-                else if (entry.getValue() instanceof Boolean)
-                    val = ((Boolean)(entry.getValue())) == true ? "1" : "0";
-                else
-                    val = String.valueOf(entry.getValue());
-                wfProcessParamsRecordDO.setPpRecordValue(val);
-                wfProcessParamsRecordDO.setTiId(tiId);
-                wfProcessParamsRecordDO.setStatus(ProcessParamState.PROCESS_PARAM_EFFECT);
-                wfProcessParamsRecordDO.setCreatetime(new Date());
-                wfProcessParamsRecordDO.setAiId(aiId);
-                wfProcessParamsRecordDO.setUpdatetime(wfProcessParamsRecordDO.getUpdatetime());
-                wfProcessParamsRecordDO.setPpRecordLevel(ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_TASK);
-                wfProcessParamsRecordMapper.insert(wfProcessParamsRecordDO);
+            WfProcessParamsRelationDO wfProcessParamsRelationDO = wfProcessParamsRelationCacheDao.get(entry.getKey(),pdId);
+            if(wfProcessParamsRelationDO == null){
+                QueryWrapper<WfProcessParamsRelationDO> queryWrapper = new QueryWrapper<>();
+                queryWrapper
+                        .eq("business_name",entry.getKey())
+                        .eq("pd_id",pdId)
+                        .eq("task_no",taskNo);
+                wfProcessParamsRelationDO = wfProcessParamsRelationMapper.selectOne(queryWrapper);
             }
+            if(wfProcessParamsRelationDO == null){
+                continue;
+            }
+            String val;
+            if(entry.getValue() instanceof String)
+                val = (String) entry.getValue();
+            else if (entry.getValue() instanceof Boolean)
+                val = ((Boolean)(entry.getValue())) == true ? "1" : "0";
+            else
+                val = String.valueOf(entry.getValue());
+
+            QueryWrapper<WfProcessParamsRecordDO> queryWrapper = new QueryWrapper<>();
+            queryWrapper
+                    .eq("engine_pp_name",wfProcessParamsRelationDO.getEnginePpName())
+                    .eq("ai_id",aiId);
+            WfProcessParamsRecordDO wfProcessParamsRecordDO = wfProcessParamsRecordMapper.selectOne(queryWrapper);
+            if(wfProcessParamsRecordDO == null){
+                wfProcessParamsRecordDO = new WfProcessParamsRecordDO();
+                wfProcessParamsRecordDO.setAiId(aiId)
+                        .setPpRecordValue(val)
+                        .setEnginePpName(wfProcessParamsRelationDO.getEnginePpName())
+                        .setStatus(ProcessParamState.PROCESS_PARAM_EFFECT)
+                        .setUpdatetime(new Date());
+                wfProcessParamsRecordMapper.insert(wfProcessParamsRecordDO);
+            }else{
+                wfProcessParamsRecordDO.setPpRecordValue(val);
+                wfProcessParamsRecordMapper.updateParamsValue(wfProcessParamsRecordDO);
+            }
+            //TODO 此处还应更新到缓存，由于返回值得问题暂时还没处理，另外还有并发下数据一致性的问题
         }
     }
 
@@ -179,7 +197,7 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
      * @return
      */
     @Override
-    public WfProcessParamsRecordBO getByEnginePpName(String enginePpName, String processInstanceId,String pdId, String usertaskNo) {
+    public WfProcessParamsRecordBO getByEnginePpName(String enginePpName, String processInstanceId, String pdId, String usertaskNo) {
         Map<String,Object> conditionMap = new HashMap<>();
         conditionMap.put("pi_id",processInstanceId);
         conditionMap.put("usertask_no",usertaskNo);
@@ -190,10 +208,10 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
         conditionMap.put("task_no",usertaskNo);
         List<WfProcessParamsRelationDO> wfProcessParamsRelationDOList = wfProcessParamsRelationMapper.selectByMap(conditionMap);
         conditionMap = new HashMap<>();
-        conditionMap.put("pp_relation_id",wfProcessParamsRelationDOList.get(0).getId());
+        conditionMap.put("engine_pp_name",enginePpName);
         conditionMap.put("ai_id",wfActivtityInstanceBO.getId());
         //流程算法只会读取活动级别的数据
-        conditionMap.put("pp_record_level",ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_ACTIVITY);
+        //conditionMap.put("pp_record_level",ProcessParamRecordLevel.PROCESS_PARAM_RECORD_LEVEL_ACTIVITY);
         conditionMap.put("status",ProcessParamState.PROCESS_PARAM_EFFECT);
         QueryWrapper<WfProcessParamsRecordDO> queryWrapper = new QueryWrapper<>();
         //为了兼容驳回的情况，取最新的orderByDesc

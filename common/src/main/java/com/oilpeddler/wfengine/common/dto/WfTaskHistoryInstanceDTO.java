@@ -66,4 +66,11 @@ public class WfTaskHistoryInstanceDTO implements Serializable {
      * 运行时任务结束时间
      */
     private Date tiEndtime;
+
+    private String piId;
+
+    /**
+     * 流程定义标识(外键)
+     */
+    private String pdId;
 }

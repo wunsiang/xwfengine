@@ -18,8 +18,7 @@ import java.util.List;
  */
 @Data
 @Accessors(chain = true)
-public class ParallelGateway extends Gateway implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class ParallelGateway extends Gateway{
     //分支和聚合网关之间的关联
     //protected ParallelGateway relatedGateWay;
 /*    protected String relatedGateWay;*/

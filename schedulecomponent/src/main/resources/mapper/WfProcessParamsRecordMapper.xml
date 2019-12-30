@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRecordMapper">
+    <update id="updateParamsValue" parameterType="com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRecordDO">
+        UPDATE wf_process_params_record
+        SET pp_record_value = pp_record_value + #{ppRecordValue},updatetime = now()
+        WHERE id = #{id}
+    </update>
+</mapper>

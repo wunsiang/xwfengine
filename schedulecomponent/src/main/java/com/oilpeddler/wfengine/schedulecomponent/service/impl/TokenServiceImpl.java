@@ -2,6 +2,7 @@ package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dao.redis.TokenCacheDao;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.element.Process;
 import com.oilpeddler.wfengine.schedulecomponent.element.UserTask;
@@ -16,6 +17,9 @@ public class TokenServiceImpl implements TokenService {
 
     @Autowired
     TokenMapper tokenMapper;
+
+    @Autowired
+    TokenCacheDao tokenCacheDao;
 
     @Override
     public Token recoverTokens(String piId, String pdId, String elementNo, Process process) {
@@ -43,6 +47,16 @@ public class TokenServiceImpl implements TokenService {
         }
         parent.setCurrentNode(findUserTaskByNo(parent.getElementNo(),process));
         return currentToken;
+    }
+
+    @Override
+    public Token getFromCache(String id) {
+        return tokenCacheDao.get(id);
+    }
+
+    @Override
+    public void setToCache(Token token) {
+        tokenCacheDao.set(token.getId(),token);
     }
 
     public UserTask findUserTaskByNo(String no, Process process) {

@@ -1,5 +1,6 @@
-package com.oilpeddler.wfengine.common.bo;
+package com.oilpeddler.wfengine.schedulecomponent.bo;
 
+import com.oilpeddler.wfengine.schedulecomponent.element.BpmnModel;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -32,4 +33,6 @@ public class WfProcessDefinitionBO implements Serializable {
      * 流程描述文件内容，附加到这里，操作方便
      */
     private String ptContent;
+
+    private BpmnModel bpmnModel;
 }

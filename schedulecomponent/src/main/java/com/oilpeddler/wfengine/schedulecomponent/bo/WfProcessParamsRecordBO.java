@@ -1,6 +1,5 @@
-package com.oilpeddler.wfengine.common.bo;
+package com.oilpeddler.wfengine.schedulecomponent.bo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -64,5 +63,10 @@ public class WfProcessParamsRecordBO implements Serializable {
      * 参数记录级别
      */
     private String ppRecordLevel;
+
+    /**
+     * 流程引擎中读取该参数时使用的名称(新增)
+     */
+    private String enginePpName;
 
 }

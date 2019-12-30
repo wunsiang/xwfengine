@@ -3,6 +3,8 @@ package com.oilpeddler.wfengine.schedulecomponent.element;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+
 /**
  * <p>
  * 要素抽象基类
@@ -13,7 +15,8 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-public abstract class BaseElement {
+public abstract class BaseElement implements Serializable {
+    private static final long serialVersionUID = 1L;
     /**
      * 编号，流程描述文件中的要素类唯一标识
      */

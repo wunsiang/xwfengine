@@ -4,12 +4,14 @@ import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class Node extends BaseElement{
+public class Node extends BaseElement implements Serializable {
+
     public List<SequenceFlow> incomingFlows = new ArrayList<SequenceFlow>();
     public List<SequenceFlow> outgoingFlows = new ArrayList<SequenceFlow>();
     public void leave(Token token){

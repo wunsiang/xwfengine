@@ -47,7 +47,9 @@ public class TaskManageConsumer implements RocketMQListener<TaskRequestMessage> 
                     .setTiAssigner(assignerId)
                     .setTiStatus(TaskInstanceState.TASK_INSTANCE_STATE_RUNNING)
                     .setBfId(wfActivtityInstanceBO.getBfId())
-                    .setAiId(wfActivtityInstanceBO.getId());
+                    .setAiId(wfActivtityInstanceBO.getId())
+                    .setPdId(wfActivtityInstanceBO.getPdId())
+                    .setPiId(wfActivtityInstanceBO.getPiId());
             wfTaskInstanceDO.setCreatetime(new Date());
             wfTaskInstanceDO.setUpdatetime(wfTaskInstanceDO.getCreatetime());
             wfTaskInstanceService.save(WfTaskInstanceConvert.INSTANCE.convertDOToDTO(wfTaskInstanceDO));

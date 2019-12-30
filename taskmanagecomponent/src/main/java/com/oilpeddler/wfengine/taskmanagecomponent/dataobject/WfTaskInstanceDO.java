@@ -41,4 +41,13 @@ public class WfTaskInstanceDO extends BaseDO {
      * 任务结束时间
      */
     private Date endtime;
+
+    private String piId;
+
+    /**
+     * 流程定义标识(外键)
+     */
+    private String pdId;
+
+
 }

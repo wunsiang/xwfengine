@@ -26,8 +26,8 @@ import java.util.Date;
  * @author wenxiang
  * @since 2019-10-08
  */
-@Service
 @org.springframework.stereotype.Service
+@Service
 public class WfProcessInstanceServiceImpl implements WfProcessInstanceService {
     @Autowired
     WfProcessInstanceMapper wfProcessInstanceMapper;

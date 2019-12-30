@@ -3,13 +3,15 @@ package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
-import com.oilpeddler.wfengine.common.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.common.constant.ActivityInstanceState;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
+import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfActivtityInstanceConvert;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfActivityHistoryInstanceMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfActivtityInstanceMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRecordMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivtityInstanceDO;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRecordDO;
 import com.oilpeddler.wfengine.schedulecomponent.element.BaseElement;
 import com.oilpeddler.wfengine.schedulecomponent.element.UserTask;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
@@ -36,6 +38,9 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
 
     @Autowired
     WfActivityHistoryInstanceMapper wfActivityHistoryInstanceMapper;
+
+    @Autowired
+    WfProcessParamsRecordMapper wfProcessParamsRecordMapper;
 
     @Autowired
     WfProcessParamsRecordService wfProcessParamsRecordService;
@@ -67,6 +72,7 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
         wfActivtityInstanceMapper.delete(queryWrapper);
     }
 
+    //TODO 活动重新开始需要置之前的参数失效
     @Override
     public List<WfActivtityInstanceBO> addActivityList(List<BaseElement> userTaskList, String piId, String pdId) {
         List<WfActivtityInstanceBO> wfActivtityInstanceBOList = new ArrayList<>();
@@ -95,6 +101,10 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
                 wfActivtityInstanceDO.setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_RUNNING);
                 wfActivtityInstanceDO.setUpdatetime(new Date());
                 wfActivtityInstanceMapper.updateById(wfActivtityInstanceDO);
+                //若之前活动产生了参数，则删除
+                Map<String,Object> conditionMap = new HashMap<>();
+                conditionMap.put("ai_id",wfActivtityInstanceDO.getId());
+                wfProcessParamsRecordMapper.deleteByMap(conditionMap);
                 wfActivtityInstanceBOList.add(WfActivtityInstanceConvert.INSTANCE.convertDOToBO(wfActivtityInstanceDO));
                 //状态转为运行，打时间戳
                 wfActivityHistoryInstanceMapper.insert(WfActivtityInstanceConvert.INSTANCE.convertRunDOToHistoryDO(wfActivtityInstanceDO));

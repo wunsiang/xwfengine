@@ -53,4 +53,9 @@ public class WfProcessParamsRecordDO extends BaseDO {
      * 参数记录级别
      */
     private String ppRecordLevel;
+
+    /**
+     * 流程引擎中读取该参数时使用的名称(新增)
+     */
+    private String enginePpName;
 }

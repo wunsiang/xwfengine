@@ -1,14 +1,13 @@
 package com.oilpeddler.wfengine.schedulecomponent.element;
 
-import com.oilpeddler.wfengine.common.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.common.constant.ParamType;
+import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.JexlUtil;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.io.Serializable;
@@ -28,10 +27,10 @@ import java.util.Map;
 @Accessors(chain = true)
 public class SequenceFlow extends BaseElement implements Serializable {
 
-    private ApplicationContext applicationContext =  SpringUtil.getApplicationContext();
+    //private ApplicationContext applicationContext =  SpringUtil.getApplicationContext();
+    //WfProcessParamsRecordService wfProcessParamsRecordService = applicationContext.getBean(WfProcessParamsRecordService.class);
 
-    WfProcessParamsRecordService wfProcessParamsRecordService = applicationContext.getBean(WfProcessParamsRecordService.class);
-
+    //WfProcessParamsRecordService wfProcessParamsRecordService = SpringUtil.getBean(WfProcessParamsRecordService.class);
     private static final long serialVersionUID = 1L;
 
     /**
@@ -68,7 +67,7 @@ public class SequenceFlow extends BaseElement implements Serializable {
             //TODO 如有条件表达式，则开始条件判断，符合条件才能通过，否则丢弃令牌，条件判断逻辑同排他网关handler部分
             Map<String,Object> requiredData = new HashMap<>();
             for(DataParam dataParam : paramList){
-                WfProcessParamsRecordBO wfProcessParamsRecordBO = wfProcessParamsRecordService.getByEnginePpName(dataParam.getEnginePpName(),token.getPiId(),token.getPdId(),dataParam.getTaskNo());
+                WfProcessParamsRecordBO wfProcessParamsRecordBO = SpringUtil.getBean(WfProcessParamsRecordService.class).getByEnginePpName(dataParam.getEnginePpName(),token.getPiId(),token.getPdId(),dataParam.getTaskNo());
                 if(wfProcessParamsRecordBO != null){
                     switch (wfProcessParamsRecordBO.getPpType()){
                         case ParamType.PARAM_TYPE_BOOL:

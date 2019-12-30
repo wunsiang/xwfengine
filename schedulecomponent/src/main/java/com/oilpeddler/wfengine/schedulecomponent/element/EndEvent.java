@@ -26,22 +26,22 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class EndEvent extends Event implements Serializable {
     private static final long serialVersionUID = 1L;
-    private ApplicationContext applicationContext =  SpringUtil.getApplicationContext();
+    //private ApplicationContext applicationContext =  SpringUtil.getApplicationContext();
 
-    TokenMapper tokenMapper = applicationContext.getBean(TokenMapper.class);
+    //TokenMapper tokenMapper = applicationContext.getBean(TokenMapper.class);
 
-    WfActivtityInstanceService wfActivtityInstanceService = applicationContext.getBean(WfActivtityInstanceService.class);;
+    //WfActivtityInstanceService wfActivtityInstanceService = applicationContext.getBean(WfActivtityInstanceService.class);;
 
-    private RocketMQTemplate rocketMQTemplate = applicationContext.getBean(RocketMQTemplate.class);
+    //private RocketMQTemplate rocketMQTemplate = applicationContext.getBean(RocketMQTemplate.class);
 
     public void execute(Token token){
         //结束流程
-        tokenMapper.deleteById(token.getId());
-        wfActivtityInstanceService.clearActivityOfProcess(token.getPiId());
+        SpringUtil.getBean(TokenMapper.class).deleteById(token.getId());
+        SpringUtil.getBean(WfActivtityInstanceService.class).clearActivityOfProcess(token.getPiId());
         sendProcessRequestMessage(token.getPiId());
     }
 
     private void sendProcessRequestMessage(String piId) {
-        rocketMQTemplate.convertAndSend(ProcessRequestMessage.TOPIC, new ProcessRequestMessage().setPiId(piId));
+        SpringUtil.getBean(RocketMQTemplate.class).convertAndSend(ProcessRequestMessage.TOPIC, new ProcessRequestMessage().setPiId(piId));
     }
 }

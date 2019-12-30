@@ -30,16 +30,18 @@ import java.util.List;
  */
 @Data
 @Accessors(chain = true)
-public class UserTask extends Node implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private ApplicationContext applicationContext =  SpringUtil.getApplicationContext();
+public class UserTask extends Node {
+    /*private ApplicationContext applicationContext =  SpringUtil.getApplicationContext();
 
     TokenMapper tokenMapper = applicationContext.getBean(TokenMapper.class);
 
     WfActivtityInstanceService wfActivtityInstanceService = applicationContext.getBean(WfActivtityInstanceService.class);
+*/
+    //TokenMapper tokenMapper = SpringUtil.getBean(TokenMapper.class);
+    //WfActivtityInstanceService wfActivtityInstanceService = SpringUtil.getBean(WfActivtityInstanceService.class);
+    //RocketMQTemplate rocketMQTemplate = SpringUtil.getBean(RocketMQTemplate.class);
 
-
-    private RocketMQTemplate rocketMQTemplate = applicationContext.getBean(RocketMQTemplate.class);
+    //private RocketMQTemplate rocketMQTemplate = applicationContext.getBean(RocketMQTemplate.class);
 
     /**
      * 活动名称
@@ -82,17 +84,17 @@ public class UserTask extends Node implements Serializable {
         //TODO 真正开始执行节点，发送消息给表单服务开启任务
         token.setUpdatetime(new Date());
         if(token.getId() == null)
-            tokenMapper.insert(token);
+            SpringUtil.getBean(TokenMapper.class).insert(token);
         else
-            tokenMapper.updateById(token);
+            SpringUtil.getBean(TokenMapper.class).updateById(token);
         List<BaseElement> readyExecuteUserTaskList = new ArrayList<>();
         readyExecuteUserTaskList.add(this);
-        List<WfActivtityInstanceBO> wfActivtityInstanceBOList = wfActivtityInstanceService.addActivityList(readyExecuteUserTaskList,token.getPiId(),token.getPdId());
+        List<WfActivtityInstanceBO> wfActivtityInstanceBOList = SpringUtil.getBean(WfActivtityInstanceService.class).addActivityList(readyExecuteUserTaskList,token.getPiId(),token.getPdId());
         sendTaskRequestMessage(wfActivtityInstanceBOList);
     }
 
     private void sendTaskRequestMessage(List<WfActivtityInstanceBO> wfActivtityInstanceBOList) {
-        rocketMQTemplate.convertAndSend(TaskRequestMessage.TOPIC, new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList));
+        SpringUtil.getBean(RocketMQTemplate.class).convertAndSend(TaskRequestMessage.TOPIC, new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList));
     }
     /*protected List<SequenceFlow> incomingFlows = new ArrayList<SequenceFlow>();
     protected List<SequenceFlow> outgoingFlows = new ArrayList<SequenceFlow>();*/

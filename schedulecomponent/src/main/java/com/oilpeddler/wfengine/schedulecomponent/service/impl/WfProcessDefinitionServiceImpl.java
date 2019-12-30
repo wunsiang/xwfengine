@@ -1,11 +1,14 @@
 package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
-import com.oilpeddler.wfengine.common.bo.WfProcessDefinitionBO;
 import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
+import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessDefinitionBO;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfProcessDefinitionConvert;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessDefinitionMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRelationMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessTemplateMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dao.redis.TokenCacheDao;
+import com.oilpeddler.wfengine.schedulecomponent.dao.redis.WfProcessDefinitionCacheDao;
+import com.oilpeddler.wfengine.schedulecomponent.dao.redis.WfProcessParamsRelationCacheDao;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessDefinitionDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRelationDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessTemplateDO;
@@ -32,12 +35,20 @@ public class WfProcessDefinitionServiceImpl implements WfProcessDefinitionServic
     @Autowired
     WfProcessParamsRelationMapper wfProcessParamsRelationMapper;
 
+    @Autowired
+    WfProcessDefinitionCacheDao wfProcessDefinitionCacheDao;
+
+    @Autowired
+    WfProcessParamsRelationCacheDao wfProcessParamsRelationCacheDao;
+
+
     @Override
     public WfProcessDefinitionBO getWfProcessDefinitionById(String id) {
         WfProcessDefinitionDO wfProcessDefinitionDO = wfProcessDefinitionMapper.selectById(id);
         WfProcessDefinitionBO wfProcessDefinitionBO = WfProcessDefinitionConvert.INSTANCE.convertDOToBO(wfProcessDefinitionDO);
         WfProcessTemplateDO wfProcessTemplateDO = wfProcessTemplateMapper.selectById(wfProcessDefinitionDO.getPtId());
         wfProcessDefinitionBO.setPtContent(wfProcessTemplateDO.getPtContent());
+        wfProcessDefinitionBO.setBpmnModel(BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent()));
         return wfProcessDefinitionBO;
     }
 
@@ -69,8 +80,19 @@ public class WfProcessDefinitionServiceImpl implements WfProcessDefinitionServic
                 wfProcessParamsRelationDO.setCreatetime(new Date());
                 wfProcessParamsRelationDO.setUpdatetime(wfProcessParamsRelationDO.getCreatetime());
                 wfProcessParamsRelationMapper.insert(wfProcessParamsRelationDO);
+                wfProcessParamsRelationCacheDao.set(wfProcessParamsRelationDO.getBusinessName(),wfProcessParamsRelationDO.getPdId(),wfProcessParamsRelationDO);
             }
         }
-        return WfProcessDefinitionConvert.INSTANCE.convertDOToBO(wfProcessDefinitionDO);
+        return WfProcessDefinitionConvert.INSTANCE.convertDOToBO(wfProcessDefinitionDO).setBpmnModel(bpmnModel);
+    }
+
+    @Override
+    public WfProcessDefinitionBO getFromCache(String id) {
+        return wfProcessDefinitionCacheDao.get(id);
+    }
+
+    @Override
+    public void setToCache(WfProcessDefinitionBO wfProcessDefinitionBO) {
+        wfProcessDefinitionCacheDao.set(wfProcessDefinitionBO.getId(),wfProcessDefinitionBO);
     }
 }
