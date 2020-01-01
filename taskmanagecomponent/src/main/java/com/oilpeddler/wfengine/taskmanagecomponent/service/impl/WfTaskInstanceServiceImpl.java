@@ -3,12 +3,14 @@ package com.oilpeddler.wfengine.taskmanagecomponent.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.oilpeddler.wfengine.common.api.taskmanagservice.WfTaskInstanceService;
+import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
 import com.oilpeddler.wfengine.common.bo.WfTaskHistoryInstanceBO;
 import com.oilpeddler.wfengine.common.bo.WfTaskInstanceBO;
 import com.oilpeddler.wfengine.common.constant.TaskInstanceState;
 import com.oilpeddler.wfengine.common.dto.WfTaskInstanceDTO;
 import com.oilpeddler.wfengine.common.dto.WfTaskInstanceQueryDTO;
 import com.oilpeddler.wfengine.common.message.ScheduleRequestMessage;
+import com.oilpeddler.wfengine.common.message.TaskRequestMessage;
 import com.oilpeddler.wfengine.common.message.WfTaskInstanceMessage;
 import com.oilpeddler.wfengine.taskmanagecomponent.convert.WfTaskInstanceConvert;
 import com.oilpeddler.wfengine.taskmanagecomponent.dao.WfTaskHistoryInstanceMapper;
@@ -16,8 +18,12 @@ import com.oilpeddler.wfengine.taskmanagecomponent.dao.WfTaskInstanceMapper;
 import com.oilpeddler.wfengine.taskmanagecomponent.dataobject.WfTaskHistoryInstanceDO;
 import com.oilpeddler.wfengine.taskmanagecomponent.dataobject.WfTaskInstanceDO;
 import org.apache.dubbo.config.annotation.Service;
+import org.apache.rocketmq.client.producer.TransactionSendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -47,19 +53,34 @@ public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
         //更新任务状态为已完成
         WfTaskInstanceDO wfTaskInstanceDO = wfTaskInstanceMapper.selectById(tiId);
         wfTaskInstanceDO.setTiStatus(TaskInstanceState.TASK_INSTANCE_STATE_COMPLETED);
-        wfTaskInstanceMapper.updateById(wfTaskInstanceDO);
         //数据转换准备发送给调度器
         WfTaskInstanceMessage wfTaskInstanceMessage = WfTaskInstanceConvert.INSTANCE.convertDOToMessage(wfTaskInstanceDO);
         wfTaskInstanceMessage.setRequiredData(requiredData);
-        sendScheduleRequestMessage(wfTaskInstanceMessage);
+        //sendScheduleRequestMessage(wfTaskInstanceMessage);
+        sendMessageInTransaction(wfTaskInstanceMessage,wfTaskInstanceDO);
+        return true;
+    }
+
+    public TransactionSendResult sendMessageInTransaction(WfTaskInstanceMessage wfTaskInstanceMessage,WfTaskInstanceDO wfTaskInstanceDO) {
+        // 创建 Demo07Message 消息
+        Message<ScheduleRequestMessage> message = MessageBuilder.withPayload(new ScheduleRequestMessage().setWfTaskInstanceMessage(wfTaskInstanceMessage))
+                .build();
+        // 发送事务消息,最后一个参数事务处理用
+        return rocketMQTemplate.sendMessageInTransaction("task-transaction-producer-group", ScheduleRequestMessage.TOPIC, message, WfTaskInstanceConvert.INSTANCE.convertDOToDTO(wfTaskInstanceDO));
+    }
+
+    @Transactional
+    @Override
+    public void ending(WfTaskInstanceDTO wfTaskInstanceDTO){
         //进行历史记录
+        WfTaskInstanceDO wfTaskInstanceDO = WfTaskInstanceConvert.INSTANCE.convertDTOToDO(wfTaskInstanceDTO);
+        wfTaskInstanceMapper.updateById(wfTaskInstanceDO);
         WfTaskHistoryInstanceDO wfTaskHistoryInstanceDO = WfTaskInstanceConvert.INSTANCE.convertRunToHistory(wfTaskInstanceDO);
         wfTaskHistoryInstanceDO.setCreatetime(new Date());
         wfTaskHistoryInstanceDO.setUpdatetime(wfTaskHistoryInstanceDO.getCreatetime());
         wfTaskHistoryInstanceMapper.insert(wfTaskHistoryInstanceDO);
         //从运行表中清除当前记录
         wfTaskInstanceMapper.deleteById(wfTaskInstanceDO.getId());
-        return true;
     }
 
     /**

@@ -17,7 +17,11 @@ import com.oilpeddler.wfengine.schedulecomponent.tools.BpmnXMLConvertUtil;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -48,11 +52,19 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
     @Autowired
     TokenService tokenService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Transactional
     @Override
     public void onMessage(ScheduleRequestMessage scheduleRequestMessage) {
         //合并并发活动数据以及判断是否存在关联活动未完成的情况
         //注：通过当前userTask的下一个元素的入度并结合当前处于正在执行状态的活动判断是否都已完成
         if(scheduleRequestMessage.getWfProcessInstanceMessage() != null){
+            //幂等性保证
+            boolean absentBoolean = stringRedisTemplate.opsForValue().setIfAbsent(scheduleRequestMessage.getWfProcessInstanceMessage().getId(),"1",1000, TimeUnit.SECONDS);
+            if(!absentBoolean)
+                return;
             WfProcessInstanceMessage wfProcessInstanceMessage = scheduleRequestMessage.getWfProcessInstanceMessage();
             WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getFromCache(wfProcessInstanceMessage.getPdId());
             if(wfProcessDefinitionBO == null){
@@ -70,10 +82,14 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
             wfProcessDefinitionBO.getBpmnModel().getProcess().getStartEvent().execute(rootToken);
 
         }else if(scheduleRequestMessage.getWfTaskInstanceMessage() != null) {
+            //幂等性保证
+            boolean absentBoolean = stringRedisTemplate.opsForValue().setIfAbsent(scheduleRequestMessage.getWfTaskInstanceMessage().getId(),"1",1000, TimeUnit.SECONDS);
+            if(!absentBoolean)
+                return;
             //根据接收到的WfTaskInstanceMessage判断接下来的流转情况
             //记录任务带的流程参数数据(任务级)
             WfActivtityInstanceBO wfActivtityInstanceBO = wfActivtityInstanceService.getById(scheduleRequestMessage.getWfTaskInstanceMessage().getAiId());
-            wfProcessParamsRecordService.recordRequiredData(wfActivtityInstanceBO.getId(),wfActivtityInstanceBO.getUsertaskNo(),wfActivtityInstanceBO.getPdId(),scheduleRequestMessage.getWfTaskInstanceMessage().getRequiredData());
+            wfProcessParamsRecordService.recordRequiredData(wfActivtityInstanceBO.getId(),scheduleRequestMessage.getWfTaskInstanceMessage().getId(),wfActivtityInstanceBO.getUsertaskNo(),wfActivtityInstanceBO.getPdId(),scheduleRequestMessage.getWfTaskInstanceMessage().getRequiredData());
             //先判断是否有会签关联任务未完成，查看activeTiNum数目，减1并更新，若减1后不为0，则等待
             wfActivtityInstanceBO.setActiveTiNum(wfActivtityInstanceBO.getActiveTiNum() - 1);
             WfActivtityInstanceDTO wfActivtityInstanceDTO =  WfActivtityInstanceConvert.INSTANCE.convertBOToDTO(wfActivtityInstanceBO);

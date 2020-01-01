@@ -10,9 +10,12 @@ import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceServ
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.apache.rocketmq.client.producer.TransactionSendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 
 import javax.annotation.Resource;
 import java.io.Serializable;
@@ -95,6 +98,15 @@ public class UserTask extends Node {
 
     private void sendTaskRequestMessage(List<WfActivtityInstanceBO> wfActivtityInstanceBOList) {
         SpringUtil.getBean(RocketMQTemplate.class).convertAndSend(TaskRequestMessage.TOPIC, new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList));
+    }
+
+    //TODO 调度器这事务消息有点问题，先停在这
+    public TransactionSendResult sendMessageInTransaction(List<WfActivtityInstanceBO> wfActivtityInstanceBOList) {
+        // 创建 Demo07Message 消息
+        Message<TaskRequestMessage> message = MessageBuilder.withPayload(new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList))
+                .build();
+        // 发送事务消息,最后一个参数乱写的
+        return SpringUtil.getBean(RocketMQTemplate.class).sendMessageInTransaction("schedule-transaction-producer-group", TaskRequestMessage.TOPIC, message, wfActivtityInstanceBOList);
     }
     /*protected List<SequenceFlow> incomingFlows = new ArrayList<SequenceFlow>();
     protected List<SequenceFlow> outgoingFlows = new ArrayList<SequenceFlow>();*/

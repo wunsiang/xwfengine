@@ -14,10 +14,13 @@ import org.apache.dubbo.config.annotation.Reference;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RocketMQMessageListener(
@@ -28,8 +31,18 @@ public class TaskManageConsumer implements RocketMQListener<TaskRequestMessage> 
     @Autowired
     WfTaskInstanceService wfTaskInstanceService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Transactional
     @Override
     public void onMessage(TaskRequestMessage taskRequestMessage) {
+        //幂等性保证
+        if(taskRequestMessage.getWfActivtityInstanceBOList() == null || taskRequestMessage.getWfActivtityInstanceBOList().size() == 0)
+            return;
+        boolean absentBoolean = stringRedisTemplate.opsForValue().setIfAbsent(taskRequestMessage.getWfActivtityInstanceBOList().get(0).getId() + taskRequestMessage.getWfActivtityInstanceBOList().get(0).getUpdatetime(),"1",1000, TimeUnit.SECONDS);
+        if(!absentBoolean)
+            return;
         for(WfActivtityInstanceBO wfActivtityInstanceBO : taskRequestMessage.getWfActivtityInstanceBOList()){
             if(wfActivtityInstanceBO.getAiCategory().equals(ActivityInstanceCategory.ACTIVITY_CATEGORY_SINGLE) || wfActivtityInstanceBO.getAiCategory().equals(ActivityInstanceCategory.ACTIVITY_CATEGORY_SINGLE_COUNTSIGN)) {
                 List<String> assigners = JSON.parseObject(wfActivtityInstanceBO.getAiAssignerId(), new TypeReference<List<String>>() {});

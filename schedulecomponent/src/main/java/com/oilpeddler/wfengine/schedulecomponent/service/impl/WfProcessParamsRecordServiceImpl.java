@@ -46,7 +46,7 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
     WfProcessParamsRecordCacheDao wfProcessParamsRecordCacheDao;
 
     @Override
-    public void recordRequiredData(String aiId, String taskNo,String pdId,Map<String, Object> requiredData) {
+    public void recordRequiredData(String aiId, String tiId,String taskNo,String pdId,Map<String, Object> requiredData) {
         //新版本逻辑为每个任务的参数过来直接计算为活动级别参数，当然也记录任务参数
         if(requiredData == null)
             return;
@@ -63,6 +63,13 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
             if(wfProcessParamsRelationDO == null){
                 continue;
             }
+            //查询表中是否有任务记录，从而判重，保证幂等性
+            QueryWrapper<WfProcessParamsRecordDO> queryWrapperRecord = new QueryWrapper<>();
+            queryWrapperRecord.eq("engine_pp_name",wfProcessParamsRelationDO.getPpName())
+                    .eq("ti_id",tiId);
+            WfProcessParamsRecordDO tiRecord  = wfProcessParamsRecordMapper.selectOne(queryWrapperRecord);
+            if(tiRecord != null)
+                return;
             String val;
             if(entry.getValue() instanceof String)
                 val = (String) entry.getValue();
@@ -70,6 +77,14 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
                 val = ((Boolean)(entry.getValue())) == true ? "1" : "0";
             else
                 val = String.valueOf(entry.getValue());
+            //任务数据记录
+            WfProcessParamsRecordDO wfProcessParamsRecordDOTask = new WfProcessParamsRecordDO();
+            wfProcessParamsRecordDOTask.setTiId(tiId)
+                    .setPpRecordValue(val)
+                    .setEnginePpName(wfProcessParamsRelationDO.getEnginePpName())
+                    .setStatus(ProcessParamState.PROCESS_PARAM_EFFECT)
+                    .setUpdatetime(new Date());
+            wfProcessParamsRecordMapper.insert(wfProcessParamsRecordDOTask);
 
             QueryWrapper<WfProcessParamsRecordDO> queryWrapper = new QueryWrapper<>();
             queryWrapper

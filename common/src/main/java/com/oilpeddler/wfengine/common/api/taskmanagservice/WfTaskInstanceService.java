@@ -12,6 +12,8 @@ import java.util.Map;
 public interface WfTaskInstanceService {
     boolean completeTask(String tiId, Map<String, Object> requiredData);
 
+    void ending(WfTaskInstanceDTO wfTaskInstanceDTO);
+
     int count(WfTaskInstanceQueryDTO wfTaskInstanceQueryDTO);
 
     List<WfTaskInstanceDTO> findRelatedTaskList(String aiId);
