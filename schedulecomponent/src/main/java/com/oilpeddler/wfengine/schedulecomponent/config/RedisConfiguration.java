@@ -25,4 +25,5 @@ public class RedisConfiguration {
         template.setValueSerializer(RedisSerializer.json());*/
         return template;
     }
+
 }

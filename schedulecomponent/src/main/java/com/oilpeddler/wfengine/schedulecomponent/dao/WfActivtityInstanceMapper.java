@@ -14,5 +14,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface WfActivtityInstanceMapper extends BaseMapper<WfActivtityInstanceDO> {
-
+    int decrementActiveNum(String id);
 }

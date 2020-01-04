@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oilpeddler.wfengine.schedulecomponent.dao.WfActivtityInstanceMapper">
+    <update id="decrementActiveNum" parameterType="int">
+        UPDATE wf_activtity_instance
+        SET active_ti_num = active_ti_num + 1
+        WHERE id = #{id}
+    </update>
+</mapper>

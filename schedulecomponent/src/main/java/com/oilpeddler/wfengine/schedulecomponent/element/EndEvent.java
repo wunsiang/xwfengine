@@ -4,6 +4,7 @@ import com.oilpeddler.wfengine.common.message.ProcessRequestMessage;
 import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
+import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessInstanceService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -38,10 +39,10 @@ public class EndEvent extends Event implements Serializable {
         //结束流程
         SpringUtil.getBean(TokenMapper.class).deleteById(token.getId());
         SpringUtil.getBean(WfActivtityInstanceService.class).clearActivityOfProcess(token.getPiId());
-        sendProcessRequestMessage(token.getPiId());
+        SpringUtil.getBean(WfProcessInstanceService.class).endProcess(token.getPiId());
     }
 
-    private void sendProcessRequestMessage(String piId) {
+/*    private void sendProcessRequestMessage(String piId) {
         SpringUtil.getBean(RocketMQTemplate.class).convertAndSend(ProcessRequestMessage.TOPIC, new ProcessRequestMessage().setPiId(piId));
-    }
+    }*/
 }

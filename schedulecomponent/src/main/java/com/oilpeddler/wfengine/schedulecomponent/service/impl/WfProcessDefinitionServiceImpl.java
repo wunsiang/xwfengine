@@ -1,22 +1,21 @@
 package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
+import com.oilpeddler.wfengine.common.api.formservice.WfProcessParamsRelationService;
+import com.oilpeddler.wfengine.common.dto.WfProcessParamsRelationDTO;
 import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
 import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessDefinitionBO;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfProcessDefinitionConvert;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessDefinitionMapper;
-import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRelationMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessTemplateMapper;
-import com.oilpeddler.wfengine.schedulecomponent.dao.redis.TokenCacheDao;
 import com.oilpeddler.wfengine.schedulecomponent.dao.redis.WfProcessDefinitionCacheDao;
-import com.oilpeddler.wfengine.schedulecomponent.dao.redis.WfProcessParamsRelationCacheDao;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessDefinitionDO;
-import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRelationDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessTemplateDO;
 import com.oilpeddler.wfengine.schedulecomponent.element.BpmnModel;
 import com.oilpeddler.wfengine.schedulecomponent.element.DataParam;
 import com.oilpeddler.wfengine.schedulecomponent.element.UserTask;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessDefinitionService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.BpmnXMLConvertUtil;
+import org.apache.dubbo.config.annotation.Reference;
 import org.apache.dubbo.config.annotation.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -32,14 +31,12 @@ public class WfProcessDefinitionServiceImpl implements WfProcessDefinitionServic
     @Autowired
     WfProcessTemplateMapper wfProcessTemplateMapper;
 
-    @Autowired
-    WfProcessParamsRelationMapper wfProcessParamsRelationMapper;
 
     @Autowired
     WfProcessDefinitionCacheDao wfProcessDefinitionCacheDao;
 
-    @Autowired
-    WfProcessParamsRelationCacheDao wfProcessParamsRelationCacheDao;
+    @Reference
+    WfProcessParamsRelationService wfProcessParamsRelationService;
 
 
     @Override
@@ -70,17 +67,16 @@ public class WfProcessDefinitionServiceImpl implements WfProcessDefinitionServic
             if(userTask.getParamList() == null)
                 continue;
             for(DataParam dataParam : userTask.getParamList()){
-                WfProcessParamsRelationDO wfProcessParamsRelationDO = new WfProcessParamsRelationDO()
+                WfProcessParamsRelationDTO wfProcessParamsRelationDTO = new WfProcessParamsRelationDTO()
                         .setPpName(dataParam.getPpName())
                         .setPpLevel("02")
                         .setPpType(dataParam.getPpType())
                         .setPdId(wfProcessDefinitionDO.getId())
                         .setTaskNo(dataParam.getTaskNo())
                         .setEnginePpName(dataParam.getEnginePpName());
-                wfProcessParamsRelationDO.setCreatetime(new Date());
-                wfProcessParamsRelationDO.setUpdatetime(wfProcessParamsRelationDO.getCreatetime());
-                wfProcessParamsRelationMapper.insert(wfProcessParamsRelationDO);
-                wfProcessParamsRelationCacheDao.set(wfProcessParamsRelationDO.getBusinessName(),wfProcessParamsRelationDO.getPdId(),wfProcessParamsRelationDO);
+                wfProcessParamsRelationDTO.setCreatetime(new Date());
+                wfProcessParamsRelationDTO.setUpdatetime(wfProcessParamsRelationDTO.getCreatetime());
+                wfProcessParamsRelationService.save(wfProcessParamsRelationDTO);
             }
         }
         return WfProcessDefinitionConvert.INSTANCE.convertDOToBO(wfProcessDefinitionDO).setBpmnModel(bpmnModel);

@@ -3,18 +3,15 @@ package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
 import com.oilpeddler.wfengine.common.constant.ActivityInstanceCategory;
+import com.oilpeddler.wfengine.common.dataobject.ParmObject;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
 import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessParamsRecordBO;
 import com.oilpeddler.wfengine.schedulecomponent.constant.ProcessParamRecordLevel;
 import com.oilpeddler.wfengine.schedulecomponent.constant.ProcessParamState;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfProcessParamsRecordConvert;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRecordMapper;
-import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRelationMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.redis.WfProcessParamsRecordCacheDao;
-import com.oilpeddler.wfengine.schedulecomponent.dao.redis.WfProcessParamsRelationCacheDao;
-import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRecordDO;
-import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRelationDO;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +21,6 @@ import java.util.*;
 
 @Service
 public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordService {
-    @Autowired
-    WfProcessParamsRelationMapper wfProcessParamsRelationMapper;
 
     @Autowired
     WfProcessParamsRecordMapper wfProcessParamsRecordMapper;
@@ -39,19 +34,17 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
     @Autowired
     WfActivtityInstanceService wfActivtityInstanceService;
 
-    @Autowired
-    WfProcessParamsRelationCacheDao wfProcessParamsRelationCacheDao;
 
     @Autowired
     WfProcessParamsRecordCacheDao wfProcessParamsRecordCacheDao;
 
     @Override
-    public void recordRequiredData(String aiId, String tiId,String taskNo,String pdId,Map<String, Object> requiredData) {
+    public void recordRequiredData(String aiId, String tiId,Map<String, ParmObject> requiredData) {
         //新版本逻辑为每个任务的参数过来直接计算为活动级别参数，当然也记录任务参数
         if(requiredData == null)
             return;
-        for (Map.Entry<String, Object> entry : requiredData.entrySet()) {
-            WfProcessParamsRelationDO wfProcessParamsRelationDO = wfProcessParamsRelationCacheDao.get(entry.getKey(),pdId);
+        for (Map.Entry<String, ParmObject> entry : requiredData.entrySet()) {
+            /*WfProcessParamsRelationDO wfProcessParamsRelationDO = wfProcessParamsRelationCacheDao.get(entry.getKey(),pdId);
             if(wfProcessParamsRelationDO == null){
                 QueryWrapper<WfProcessParamsRelationDO> queryWrapper = new QueryWrapper<>();
                 queryWrapper
@@ -62,41 +55,43 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
             }
             if(wfProcessParamsRelationDO == null){
                 continue;
-            }
+            }*/
             //查询表中是否有任务记录，从而判重，保证幂等性
             QueryWrapper<WfProcessParamsRecordDO> queryWrapperRecord = new QueryWrapper<>();
-            queryWrapperRecord.eq("engine_pp_name",wfProcessParamsRelationDO.getPpName())
+            queryWrapperRecord.eq("engine_pp_name",entry.getKey())
                     .eq("ti_id",tiId);
             WfProcessParamsRecordDO tiRecord  = wfProcessParamsRecordMapper.selectOne(queryWrapperRecord);
             if(tiRecord != null)
                 return;
             String val;
-            if(entry.getValue() instanceof String)
-                val = (String) entry.getValue();
-            else if (entry.getValue() instanceof Boolean)
-                val = ((Boolean)(entry.getValue())) == true ? "1" : "0";
+            if(entry.getValue().getVal() instanceof String)
+                val = (String) entry.getValue().getVal();
+            else if (entry.getValue().getVal() instanceof Boolean)
+                val = ((Boolean)(entry.getValue().getVal())) == true ? "1" : "0";
             else
-                val = String.valueOf(entry.getValue());
+                val = String.valueOf(entry.getValue().getVal());
             //任务数据记录
             WfProcessParamsRecordDO wfProcessParamsRecordDOTask = new WfProcessParamsRecordDO();
             wfProcessParamsRecordDOTask.setTiId(tiId)
                     .setPpRecordValue(val)
-                    .setEnginePpName(wfProcessParamsRelationDO.getEnginePpName())
+                    .setEnginePpName(entry.getKey())
                     .setStatus(ProcessParamState.PROCESS_PARAM_EFFECT)
+                    .setPpType(entry.getValue().getPpType())
                     .setUpdatetime(new Date());
             wfProcessParamsRecordMapper.insert(wfProcessParamsRecordDOTask);
 
             QueryWrapper<WfProcessParamsRecordDO> queryWrapper = new QueryWrapper<>();
             queryWrapper
-                    .eq("engine_pp_name",wfProcessParamsRelationDO.getEnginePpName())
+                    .eq("engine_pp_name",entry.getKey())
                     .eq("ai_id",aiId);
             WfProcessParamsRecordDO wfProcessParamsRecordDO = wfProcessParamsRecordMapper.selectOne(queryWrapper);
             if(wfProcessParamsRecordDO == null){
                 wfProcessParamsRecordDO = new WfProcessParamsRecordDO();
                 wfProcessParamsRecordDO.setAiId(aiId)
                         .setPpRecordValue(val)
-                        .setEnginePpName(wfProcessParamsRelationDO.getEnginePpName())
+                        .setEnginePpName(entry.getKey())
                         .setStatus(ProcessParamState.PROCESS_PARAM_EFFECT)
+                        .setPpType(entry.getValue().getPpType())
                         .setUpdatetime(new Date());
                 wfProcessParamsRecordMapper.insert(wfProcessParamsRecordDO);
             }else{
@@ -217,11 +212,11 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
         conditionMap.put("pi_id",processInstanceId);
         conditionMap.put("usertask_no",usertaskNo);
         WfActivtityInstanceBO wfActivtityInstanceBO = wfActivtityInstanceService.getOneByMap(conditionMap);
-        conditionMap = new HashMap<>();
+        /*conditionMap = new HashMap<>();
         conditionMap.put("engine_pp_name",enginePpName);
         conditionMap.put("pd_id",pdId);
         conditionMap.put("task_no",usertaskNo);
-        List<WfProcessParamsRelationDO> wfProcessParamsRelationDOList = wfProcessParamsRelationMapper.selectByMap(conditionMap);
+        List<WfProcessParamsRelationDO> wfProcessParamsRelationDOList = wfProcessParamsRelationMapper.selectByMap(conditionMap);*/
         conditionMap = new HashMap<>();
         conditionMap.put("engine_pp_name",enginePpName);
         conditionMap.put("ai_id",wfActivtityInstanceBO.getId());
@@ -233,7 +228,7 @@ public class WfProcessParamsRecordServiceImpl implements WfProcessParamsRecordSe
         queryWrapper.allEq(conditionMap).orderByDesc("createtime");
         List<WfProcessParamsRecordDO> wfProcessParamsRecordDOList = wfProcessParamsRecordMapper.selectList(queryWrapper);
         WfProcessParamsRecordBO wfProcessParamsRecordBO =  WfProcessParamsRecordConvert.INSTANCE.convertDOToBO(wfProcessParamsRecordDOList.get(0));
-        wfProcessParamsRecordBO.setPpType(wfProcessParamsRelationDOList.get(0).getPpType());
+        //wfProcessParamsRecordBO.setPpType(wfProcessParamsRelationDOList.get(0).getPpType());
         return wfProcessParamsRecordBO;
     }
 

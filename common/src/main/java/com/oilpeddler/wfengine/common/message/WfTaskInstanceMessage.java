@@ -1,5 +1,6 @@
 package com.oilpeddler.wfengine.common.message;
 
+import com.oilpeddler.wfengine.common.dataobject.ParmObject;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -24,25 +25,23 @@ public class WfTaskInstanceMessage {
     /**
      * 任务名称
      */
-    private String tiName;
+    //private String tiName;
 
     /**
      * 所属活动实例标识
      */
-    private String aiId;
+    //private String aiId;
 
     /**
      * 该任务对应的必填项数据
      */
-    Map<String,Object> requiredData;
+    Map<String, ParmObject> requiredData;
 
     /**
      * 流程实例主键
      */
-    private String piId;
+    //private String piId;
 
-    /**
-     * 流程定义主键
-     */
-    private String pdId;
+
+    //private String pdId;
 }

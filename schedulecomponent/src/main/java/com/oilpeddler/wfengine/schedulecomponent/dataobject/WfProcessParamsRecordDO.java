@@ -58,4 +58,5 @@ public class WfProcessParamsRecordDO extends BaseDO {
      * 流程引擎中读取该参数时使用的名称(新增)
      */
     private String enginePpName;
+    private String ppType;
 }

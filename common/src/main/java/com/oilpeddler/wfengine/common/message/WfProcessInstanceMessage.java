@@ -4,6 +4,7 @@ package com.oilpeddler.wfengine.common.message;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -19,13 +20,14 @@ import java.util.Map;
 public class WfProcessInstanceMessage {
     //TODO 消息队列中传递的对象需要实现Serializable吗？？？
     /**
-     * 主键
-     */
-    private String id;
-
-    /**
      * 流程定义标识(外键)
      */
     private String pdId;
+
+    private String piName;
+
+    private String piStarter;
+
+    private String piBusinesskey;
 
 }

@@ -1,10 +1,15 @@
 package com.oilpeddler.wfengine.schedulecomponent.element;
 
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
+import com.oilpeddler.wfengine.common.constant.TaskInstanceState;
 import com.oilpeddler.wfengine.common.message.TaskRequestMessage;
 import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dao.WfTaskInstanceMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfTaskInstanceDO;
 import com.oilpeddler.wfengine.schedulecomponent.service.TokenService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
@@ -14,6 +19,7 @@ import org.apache.rocketmq.client.producer.TransactionSendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
@@ -93,21 +99,39 @@ public class UserTask extends Node {
         List<BaseElement> readyExecuteUserTaskList = new ArrayList<>();
         readyExecuteUserTaskList.add(this);
         List<WfActivtityInstanceBO> wfActivtityInstanceBOList = SpringUtil.getBean(WfActivtityInstanceService.class).addActivityList(readyExecuteUserTaskList,token.getPiId(),token.getPdId());
-        sendTaskRequestMessage(wfActivtityInstanceBOList);
+        List<String> assigners = JSON.parseObject(wfActivtityInstanceBOList.get(0).getAiAssignerId(), new TypeReference<List<String>>() {});
+        pushTask(wfActivtityInstanceBOList.get(0),assigners);
     }
 
-    private void sendTaskRequestMessage(List<WfActivtityInstanceBO> wfActivtityInstanceBOList) {
+    public void pushTask(WfActivtityInstanceBO wfActivtityInstanceBO,List<String> assigners){
+        for(String assignerId : assigners){
+            WfTaskInstanceDO wfTaskInstanceDO = new WfTaskInstanceDO()
+                    .setTiName(wfActivtityInstanceBO.getAiName())
+                    .setTiAssigner(assignerId)
+                    .setTiStatus(TaskInstanceState.TASK_INSTANCE_STATE_RUNNING)
+                    .setBfId(wfActivtityInstanceBO.getBfId())
+                    .setAiId(wfActivtityInstanceBO.getId())
+                    .setPdId(wfActivtityInstanceBO.getPdId())
+                    .setPiId(wfActivtityInstanceBO.getPiId());
+            wfTaskInstanceDO.setCreatetime(new Date());
+            wfTaskInstanceDO.setUpdatetime(wfTaskInstanceDO.getCreatetime());
+            SpringUtil.getBean(WfTaskInstanceMapper.class).insert(wfTaskInstanceDO);
+            SpringUtil.getBean(StringRedisTemplate.class).opsForValue().set(wfTaskInstanceDO.getId(),"1");
+        }
+    }
+
+    /*private void sendTaskRequestMessage(List<WfActivtityInstanceBO> wfActivtityInstanceBOList) {
         SpringUtil.getBean(RocketMQTemplate.class).convertAndSend(TaskRequestMessage.TOPIC, new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList));
-    }
+    }*/
 
-    //TODO 调度器这事务消息有点问题，先停在这
+    /*//TODO 调度器这事务消息有点问题，先停在这
     public TransactionSendResult sendMessageInTransaction(List<WfActivtityInstanceBO> wfActivtityInstanceBOList) {
         // 创建 Demo07Message 消息
         Message<TaskRequestMessage> message = MessageBuilder.withPayload(new TaskRequestMessage().setWfActivtityInstanceBOList(wfActivtityInstanceBOList))
                 .build();
         // 发送事务消息,最后一个参数乱写的
         return SpringUtil.getBean(RocketMQTemplate.class).sendMessageInTransaction("schedule-transaction-producer-group", TaskRequestMessage.TOPIC, message, wfActivtityInstanceBOList);
-    }
+    }*/
     /*protected List<SequenceFlow> incomingFlows = new ArrayList<SequenceFlow>();
     protected List<SequenceFlow> outgoingFlows = new ArrayList<SequenceFlow>();*/
 
