@@ -13,7 +13,7 @@ public class RedisConfiguration {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
 
         // 设置开启事务支持
-        template.setEnableTransactionSupport(true);
+        //template.setEnableTransactionSupport(true);
 
         // 设置 RedisConnection 工厂。😈 它就是实现多种 Java Redis 客户端接入的秘密工厂。感兴趣的胖友，可以自己去撸下。
         template.setConnectionFactory(factory);

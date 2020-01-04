@@ -28,13 +28,13 @@ public class FormcomponentApplicationTests {
 
     @Test
     public void endTask(){
-        String tiId = "1213400749837422593";
+        String tiId = "1213441140771049473";
         String pdId = "1213398349152014337";
-        String taskNo = "ut001";
+        String taskNo = "ut003";
         String dynamicAss = "e78dsdf78678sd,sdf89s7f89sdfsd89";
         Map<String,Object> requiredData = new HashMap<>();
-        requiredData.put("businessdynamicassignee01",dynamicAss);
-        //requiredData.put("businessday",6);
+        //requiredData.put("businessdynamicassignee01",dynamicAss);
+        requiredData.put("businessday",6);
         //requiredData.put("businesspass",true);
         //requiredData.put("businessok",true);
         clientTaskService.completeTask(tiId,pdId,taskNo,requiredData);
