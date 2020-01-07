@@ -54,6 +54,7 @@ public class Token extends BaseDO {
     @TableField(exist = false)
     List<Token> children = new ArrayList<>();
 
+    protected int childNum;
 
     /**
      * 非UserTask节点不会使用signal信号驱动，是通过execute自动转移，而也只有UserTask节点需要调用getDefaultOutgoings()方法

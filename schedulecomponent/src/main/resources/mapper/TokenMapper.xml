@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper">
+    <!--<update id="decrementChildNum">
+        UPDATE wf_token
+        SET child_num = child_num - 1
+        WHERE id = #{id}
+        <selectKey resultType="java.lang.Integer" order="AFTER">
+            select child_num FROM wf_token WHERE id = #{id}
+        </selectKey>
+    </update>-->
+
+    <update id="decrementChildNum" keyProperty="id">
+        UPDATE wf_token
+        SET child_num = child_num - 1
+        WHERE id = #{id}
+    </update>
+</mapper>

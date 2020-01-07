@@ -2,7 +2,7 @@
 1、启动
 
 ```shell
-cd ~/ThirdSoft/zookeeper-3.4.9/bin
+cd ~/development/dev_software/zookeeper-3.4.9/bin
 ./zkServer.sh start
 ```
 
@@ -17,7 +17,7 @@ brokerIP1=127.0.0.1 //你的公网IP
 运行Name Server
 
 ```shell
-cd /Users/wunsiang/ThirdSoft/rocketmq-all-4.3.2/distribution/target/apache-rocketmq
+cd /Users/wunsiang/development/dev_software/rocketmq-all-4.3.2/distribution/target/apache-rocketmq
 nohup ./bin/mqnamesrv -n 127.0.0.1:9876 &
 tail -f ~/logs/rocketmqlogs/namesrv.log
 ```
@@ -25,8 +25,15 @@ tail -f ~/logs/rocketmqlogs/namesrv.log
 运行Broker
 
 ```shell
+cd /Users/wunsiang/development/dev_software/rocketmq-all-4.3.2/distribution/target/apache-rocketmq
 nohup sh bin/mqbroker -n 127.0.0.1:9876 -c conf/broker.conf autoCreateTopicEnable=true &
 tail -f ~/logs/rocketmqlogs/broker.log 
+```
+
+运行console
+```shell
+cd /Users/wunsiang/development/dev_software/rocketmq-externals-master/rocketmq-console/
+java -jar target/rocketmq-console-ng-1.0.1.jar
 ```
 
 3、结束
@@ -34,7 +41,7 @@ tail -f ~/logs/rocketmqlogs/broker.log
 Rocketmq Shutdown Servers
 
 ```shell
-cd /Users/wunsiang/ThirdSoft/rocketmq-all-4.3.2/distribution/target/apache-rocketmq
+cd /Users/wunsiang/development/dev_software/rocketmq-all-4.3.2/distribution/target/apache-rocketmq
 sh bin/mqshutdown broker
 sh bin/mqshutdown namesrv
 ```
@@ -42,7 +49,7 @@ sh bin/mqshutdown namesrv
 zookeeper
 
 ```
-cd ~/ThirdSoft/zookeeper-3.4.9/bin
+cd ~/development/dev_software/zookeeper-3.4.9/bin
 ./zkServer.sh stop
 ```
 

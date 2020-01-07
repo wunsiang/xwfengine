@@ -42,6 +42,8 @@ public abstract class Gateway extends Node {
     }
 
     public void fork(Token token){
+        token.setChildNum(outgoingFlows.size());
+        SpringUtil.getBean(TokenMapper.class).updateById(token);
         for(SequenceFlow sequenceFlow : outgoingFlows){
             Token childToken = new Token();
             childToken.setParent(token);
@@ -58,24 +60,16 @@ public abstract class Gateway extends Node {
     }
 
     public void merge(Token token){
-        List<Token> concurrentTokens = token.getParent().getChildren();
-        boolean reactivate = true;
-        for(Token concurrentToken : concurrentTokens){
-            if(concurrentToken.getCurrentNode() != token.getCurrentNode()){
-                reactivate = false;
-            }else{
-                //TODO 到子令牌一个删一个，应该不会影响啥,但是等加了缓存机制之后恐怕就要修改下啦
-                SpringUtil.getBean(TokenMapper.class).deleteById(concurrentToken.getId());
-            }
-        }
-        //删除当前的并发子节点，父节点直接到达当前merge网关节点
-        if(reactivate){
-            Token father = token.getParent();
-            father.setCurrentNode(this);
-            father.setChildren(new ArrayList<>());
-            leave(father);
+        //TODO 判断当前token是不是父token的最后一个子token，如果是就把爹弄来，不是就删了自个了事
+        TokenMapper tokenMapper = SpringUtil.getBean(TokenMapper.class);
+        tokenMapper.deleteById(token.getId());
+        tokenMapper.decrementChildNum(token.getParentId());
+        Token parentToken = tokenMapper.selectById(token.getParentId());
+        if(parentToken.getChildNum() == 0){
+            parentToken.setCurrentNode(this);
+            parentToken.setElementNo(this.getNo());
+            parentToken.setChildren(new ArrayList<>());
+            leave(parentToken);
         }
     }
-    /*protected List<SequenceFlow> incomingFlows = new ArrayList<SequenceFlow>();
-    protected List<SequenceFlow> outgoingFlows = new ArrayList<SequenceFlow>();*/
 }

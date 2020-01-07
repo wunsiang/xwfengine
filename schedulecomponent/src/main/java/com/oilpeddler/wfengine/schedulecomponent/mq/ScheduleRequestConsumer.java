@@ -110,7 +110,8 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
                 wfProcessDefinitionBO.setBpmnModel(BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent()));
             }
             //Token复原，关键在子父关系一整套都要复原
-            Token cToken = tokenService.recoverTokens(wfActivtityInstanceBO.getPiId(),wfActivtityInstanceBO.getPdId(),wfActivtityInstanceBO.getUsertaskNo(),wfProcessDefinitionBO.getBpmnModel().getProcess());
+            //Token cToken = tokenService.recoverTokens(wfActivtityInstanceBO.getPiId(), wfActivtityInstanceBO.getPdId(), wfActivtityInstanceBO.getUsertaskNo(), wfProcessDefinitionBO.getBpmnModel().getProcess());
+            Token cToken = tokenService.getCurrentToken(wfActivtityInstanceBO.getPiId(),  wfActivtityInstanceBO.getUsertaskNo(), wfProcessDefinitionBO.getBpmnModel().getProcess());
             cToken.signal();
         }
     }

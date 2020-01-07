@@ -1,10 +1,13 @@
 package com.oilpeddler.wfengine.schedulecomponent;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.oilpeddler.wfengine.common.api.processmanagservice.WfProcessInstanceService;
 import com.oilpeddler.wfengine.common.api.taskmanagservice.WfTaskInstanceService;
 import com.oilpeddler.wfengine.common.dto.WfProcessInstanceStartDTO;
 import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
 import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessDefinitionBO;
+import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessDefinitionService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessTemplateService;
@@ -15,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,13 +55,13 @@ public class SchedulecomponentApplicationTests {
      */
     private void mockCompleteTask(){
         //模拟业务controller收到用户提交处理表单同时提交的暗含在页面中的的已完成的任务标识和与该任务相关的必填项数据
-        String taskId = "1212220806042537987";
-        String dynamicAss = "e78dsdf78678sd,sdf89s7f89sdfsd89";
+        String taskId = "1214550391659089922";
+        //String dynamicAss = "e78dsdf78678sd,sdf89s7f89sdfsd89";
         Map<String,Object> requiredData = new HashMap<>();
-        requiredData.put("businessdynamicassignee01",dynamicAss);
+        //requiredData.put("businessdynamicassignee01",dynamicAss);
         //requiredData.put("businessday",6);
         //requiredData.put("businesspass",true);
-        //requiredData.put("businessok",true);
+        requiredData.put("businessok",true);
         wfTaskInstanceService.completeTask(taskId,requiredData);
     }
     /**
@@ -83,13 +87,25 @@ public class SchedulecomponentApplicationTests {
          */
         WfProcessInstanceStartDTO wfProcessInstanceStartDTO = new WfProcessInstanceStartDTO()
                 .setPdId(wfProcessDefinitionBO.getId())
-                .setPiName("processstarter001" + "流程定义1")
-                .setPiStarter("processstarter001")
-                .setPiBusinesskey("businesskey001");
+                .setPiName("processstarter001" + "流程实例4")
+                .setPiStarter("processstarter004")
+                .setPiBusinesskey("businesskey004");
 
         wfProcessInstanceService.startProcess(wfProcessInstanceStartDTO);
     }
 
+    @Autowired
+    TokenMapper tokenMapper;
 
+    @Test
+    @Transactional
+    public void bf(){
+        int r = tokenMapper.deleteById("1213400206196912130");
+        QueryWrapper<Token> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("parent_id","1213398753059319810");
+        int count = tokenMapper.selectCount(queryWrapper);
+        System.out.println(count);
+    }
 
 }

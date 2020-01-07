@@ -22,6 +22,17 @@ public class TokenServiceImpl implements TokenService {
     TokenCacheDao tokenCacheDao;
 
     @Override
+    public Token getCurrentToken(String piId,String elementNo, Process process){
+        QueryWrapper<Token> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("pi_id",piId)
+                .eq("element_no",elementNo);
+        Token currentToken = tokenMapper.selectOne(queryWrapper);
+        currentToken.setCurrentNode(findUserTaskByNo(currentToken.getElementNo(),process));
+        return currentToken;
+    }
+
+    @Override
     public Token recoverTokens(String piId, String pdId, String elementNo, Process process) {
         QueryWrapper<Token> queryWrapper = new QueryWrapper<>();
         queryWrapper
