@@ -6,6 +6,7 @@
     <modules>
         <module>schedulecomponent</module>
         <module>common</module>
+        <module>formcomponent</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

@@ -48,6 +48,7 @@ public class Token extends BaseDO {
      */
     protected String pdId;
 
+    protected int childNum;
     /**
      * 孩子
      */

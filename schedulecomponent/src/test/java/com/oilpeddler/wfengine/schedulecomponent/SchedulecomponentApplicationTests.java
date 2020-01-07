@@ -1,7 +1,10 @@
 package com.oilpeddler.wfengine.schedulecomponent;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
 import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessDefinitionBO;
+import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessDefinitionService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessTemplateService;
@@ -10,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @RunWith(SpringRunner.class)
@@ -78,6 +82,22 @@ public class SchedulecomponentApplicationTests {
 
         wfProcessInstanceService.startProcess(wfProcessInstanceStartDTO);*/
     }
+
+    @Autowired
+    TokenMapper tokenMapper;
+
+    @Test
+    @Transactional
+    public void bf(){
+        int r = tokenMapper.deleteById("1213400206196912130");
+        QueryWrapper<Token> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("parent_id","1213398753059319810");
+        int count = tokenMapper.selectCount(queryWrapper);
+        System.out.println(count);
+    }
+
+
 
 
 

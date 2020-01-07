@@ -22,19 +22,19 @@ public class FormcomponentApplicationTests {
 
     @Test
     public void contextLoads() {
-        String pdId = "1213398349152014337";
-        clientProcessService.startProcess(pdId,"流程实例2","申请人2","businesskey2");
+        String pdId = "1214539031835500546";
+        clientProcessService.startProcess(pdId,"流程实例3","申请人3","businesskey3");
     }
 
     @Test
     public void endTask(){
-        String tiId = "1213441140771049473";
-        String pdId = "1213398349152014337";
-        String taskNo = "ut003";
-        String dynamicAss = "e78dsdf78678sd,sdf89s7f89sdfsd89";
+        String tiId = "1213451203787186177";
+        String pdId = "1214539031835500546";
+        String taskNo = "ut005";
+        //String dynamicAss = "e78dsdf78678sd,sdf89s7f89sdfsd89";
         Map<String,Object> requiredData = new HashMap<>();
         //requiredData.put("businessdynamicassignee01",dynamicAss);
-        requiredData.put("businessday",6);
+        //requiredData.put("businessday",6);
         //requiredData.put("businesspass",true);
         //requiredData.put("businessok",true);
         clientTaskService.completeTask(tiId,pdId,taskNo,requiredData);
