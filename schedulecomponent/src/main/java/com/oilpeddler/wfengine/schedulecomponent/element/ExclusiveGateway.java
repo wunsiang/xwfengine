@@ -2,14 +2,12 @@ package com.oilpeddler.wfengine.schedulecomponent.element;
 
 import com.oilpeddler.wfengine.common.constant.ParamType;
 import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessParamsRecordBO;
-import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.JexlUtil;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.context.ApplicationContext;
 
 import java.io.Serializable;
 import java.util.HashMap;

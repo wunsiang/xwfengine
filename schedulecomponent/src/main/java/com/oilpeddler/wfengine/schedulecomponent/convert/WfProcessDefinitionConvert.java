@@ -1,6 +1,6 @@
 package com.oilpeddler.wfengine.schedulecomponent.convert;
 
-import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessDefinitionBO;
+import com.oilpeddler.wfengine.common.bo.WfProcessDefinitionBO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessDefinitionDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mappings;

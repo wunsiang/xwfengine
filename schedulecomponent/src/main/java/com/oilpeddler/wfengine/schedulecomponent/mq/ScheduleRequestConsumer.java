@@ -3,39 +3,35 @@ package com.oilpeddler.wfengine.schedulecomponent.mq;
 
 
 
-import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
-import com.oilpeddler.wfengine.common.bo.WfProcessInstanceBO;
+import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessDefinitionService;
+import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessInstanceService;
+import com.oilpeddler.wfengine.common.api.scheduleservice.WfTaskHistoryInstanceService;
+import com.oilpeddler.wfengine.common.api.scheduleservice.WfTaskInstanceService;
+import com.oilpeddler.wfengine.common.bo.*;
 import com.oilpeddler.wfengine.common.constant.ActivityInstanceState;
 import com.oilpeddler.wfengine.common.constant.TaskInstanceState;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
 import com.oilpeddler.wfengine.common.message.ScheduleRequestMessage;
-import com.oilpeddler.wfengine.common.message.WfProcessInstanceMessage;
 import com.oilpeddler.wfengine.common.message.WfTaskInstanceMessage;
-import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessDefinitionBO;
-import com.oilpeddler.wfengine.schedulecomponent.bo.WfTaskHistoryInstanceBO;
-import com.oilpeddler.wfengine.schedulecomponent.bo.WfTaskInstanceBO;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfActivtityInstanceConvert;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfProcessInstanceConvert;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfTaskHistoryInstanceConvert;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfTaskInstanceConvert;
+import com.oilpeddler.wfengine.schedulecomponent.dao.redis.BpmnModelCacheDao;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
-import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfTaskHistoryInstanceDO;
-import com.oilpeddler.wfengine.schedulecomponent.dto.WfProcessInstanceDTO;
-import com.oilpeddler.wfengine.schedulecomponent.dto.WfProcessInstanceStartDTO;
+import com.oilpeddler.wfengine.schedulecomponent.element.BpmnModel;
 import com.oilpeddler.wfengine.schedulecomponent.service.*;
 import com.oilpeddler.wfengine.schedulecomponent.tools.BpmnXMLConvertUtil;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -81,6 +77,8 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
     @Resource
     SqlSessionTemplate sqlsession;
 
+    @Autowired
+    BpmnModelCacheDao bpmnModelCacheDao;
 
     @Transactional
     @Override
@@ -93,21 +91,24 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
             if(!absentBoolean)
                 return;*/
             WfProcessInstanceBO wfProcessInstanceBO = wfProcessInstanceService.startProcess(WfProcessInstanceConvert.INSTANCE.convertMessageToStartDTO(scheduleRequestMessage.getWfProcessInstanceMessage()));
-            WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getFromCache(wfProcessInstanceBO.getPdId());
-            if(wfProcessDefinitionBO == null){
-                wfProcessDefinitionBO = wfProcessDefinitionService.getWfProcessDefinitionById(wfProcessInstanceBO.getPdId());
-                wfProcessDefinitionBO.setBpmnModel(BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent()));
-            }
+            WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getWfProcessDefinitionById(wfProcessInstanceBO.getPdId());
+            BpmnModel bpmnModel = bpmnModelCacheDao.get(wfProcessDefinitionBO.getId());
+            if(bpmnModel == null)
+                bpmnModel = BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent());
             //新版从这开始，新建一个token
             Token rootToken = new Token();
             rootToken.setPiId(wfProcessInstanceBO.getId());
             rootToken.setPdId(wfProcessInstanceBO.getPdId());
             //no在start任务里面配
             rootToken.setParentId("0");
-            //将rootToken加入缓存
-            //tokenService.setToCache(rootToken);
-            wfProcessDefinitionBO.getBpmnModel().getProcess().getStartEvent().execute(rootToken);
-
+            rootToken.setElementNo(bpmnModel.getProcess().getStartEvent().getNo());
+            bpmnModel.getProcess().getStartEvent().execute(rootToken);
+            //自动完成第一个任务
+            WfTaskInstanceMessage wfTaskInstanceMessage = new WfTaskInstanceMessage()
+                    .setId(wfTaskInstanceService.getFirstTaskId(wfProcessInstanceBO.getId()))
+                    .setRequiredData(scheduleRequestMessage.getWfProcessInstanceMessage().getRequiredData());
+            scheduleRequestMessage.setWfTaskInstanceMessage(wfTaskInstanceMessage);
+            taskSchedule(scheduleRequestMessage);
         }else if(scheduleRequestMessage.getWfTaskInstanceMessage() != null) {
             //幂等性保证
             //stringRedisTemplate.setEnableTransactionSupport(true);
@@ -119,7 +120,7 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
             }catch (Exception e){
                 stringRedisTemplate.opsForValue().set(scheduleRequestMessage.getWfTaskInstanceMessage().getId(),"1");
                 System.out.println(stringRedisTemplate.opsForValue().get(scheduleRequestMessage.getWfTaskInstanceMessage().getId()));
-                throw new RuntimeException();
+                throw e;
             }
         }
     }
@@ -150,14 +151,13 @@ public class ScheduleRequestConsumer implements RocketMQListener<ScheduleRequest
         //活动历史库打时间戳记录
         scheduleManageService.recordActivityHistory(wfActivtityInstanceDTO);
         //之后开始找接下来的活动，返回值为空代表当前还有关联活动未完成，返回值为endevent说明要结束流程
-        WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getFromCache(wfActivtityInstanceBO.getPdId());
-        if (wfProcessDefinitionBO == null) {
-            wfProcessDefinitionBO = wfProcessDefinitionService.getWfProcessDefinitionById(wfActivtityInstanceBO.getPdId());
-            wfProcessDefinitionBO.setBpmnModel(BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent()));
-        }
+        WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.getWfProcessDefinitionById(wfActivtityInstanceBO.getPdId());
+        BpmnModel bpmnModel = bpmnModelCacheDao.get(wfProcessDefinitionBO.getId());
+        if(bpmnModel == null)
+            bpmnModel = BpmnXMLConvertUtil.ConvertToBpmnModel(wfProcessDefinitionBO.getPtContent());
         //Token复原，关键在子父关系一整套都要复原
         //Token cToken = tokenService.recoverTokens(wfActivtityInstanceBO.getPiId(), wfActivtityInstanceBO.getPdId(), wfActivtityInstanceBO.getUsertaskNo(), wfProcessDefinitionBO.getBpmnModel().getProcess());
-        Token cToken = tokenService.getCurrentToken(wfActivtityInstanceBO.getPiId(),  wfActivtityInstanceBO.getUsertaskNo(), wfProcessDefinitionBO.getBpmnModel().getProcess());
+        Token cToken = tokenService.getCurrentToken(wfActivtityInstanceBO.getPiId(),  wfActivtityInstanceBO.getUsertaskNo(), bpmnModel.getProcess());
         cToken.signal();
     }
 

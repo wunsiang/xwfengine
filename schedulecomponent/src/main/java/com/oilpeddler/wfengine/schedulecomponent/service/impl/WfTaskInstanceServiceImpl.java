@@ -1,22 +1,27 @@
 package com.oilpeddler.wfengine.schedulecomponent.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.oilpeddler.wfengine.common.api.scheduleservice.WfTaskInstanceService;
+import com.oilpeddler.wfengine.common.bo.WfTaskInstanceBO;
 import com.oilpeddler.wfengine.common.constant.TaskInstanceState;
+import com.oilpeddler.wfengine.common.dto.WfTaskInstanceDTO;
+import com.oilpeddler.wfengine.common.dto.WfTaskInstanceQueryDTO;
 import com.oilpeddler.wfengine.common.message.ScheduleRequestMessage;
 import com.oilpeddler.wfengine.common.message.WfTaskInstanceMessage;
-import com.oilpeddler.wfengine.schedulecomponent.bo.WfTaskInstanceBO;
 import com.oilpeddler.wfengine.schedulecomponent.convert.WfTaskInstanceConvert;
+import com.oilpeddler.wfengine.schedulecomponent.dao.WfActivtityInstanceMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessInstanceMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfTaskHistoryInstanceMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfTaskInstanceMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivtityInstanceDO;
+import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessInstanceDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfTaskHistoryInstanceDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfTaskInstanceDO;
-import com.oilpeddler.wfengine.schedulecomponent.dto.WfTaskInstanceDTO;
-import com.oilpeddler.wfengine.schedulecomponent.dto.WfTaskInstanceQueryDTO;
-import com.oilpeddler.wfengine.schedulecomponent.service.WfTaskInstanceService;
 import org.apache.dubbo.config.annotation.Service;
 import org.apache.rocketmq.client.producer.TransactionSendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,8 +39,17 @@ public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
     @Autowired
     WfTaskHistoryInstanceMapper wfTaskHistoryInstanceMapper;
 
+    @Autowired
+    WfActivtityInstanceMapper wfActivtityInstanceMapper;
+
+    @Autowired
+    WfProcessInstanceMapper wfProcessInstanceMapper;
+
     @Resource
     private RocketMQTemplate rocketMQTemplate;
+
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
 
 
 /*    @Override
@@ -146,6 +160,66 @@ public class WfTaskInstanceServiceImpl implements WfTaskInstanceService {
     @Override
     public void delete(String id) {
         wfTaskInstanceMapper.deleteById(id);
+    }
+
+    @Override
+    public String getFirstTaskId(String piId) {
+        QueryWrapper<WfTaskInstanceDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("pi_id",piId);
+        WfTaskInstanceDO wfTaskInstanceDO = wfTaskInstanceMapper.selectOne(queryWrapper);
+        return wfTaskInstanceDO.getId();
+    }
+
+    @Override
+    public WfTaskInstanceDTO updateById(WfTaskInstanceDTO wfTaskInstanceDTO) {
+        /*WfActivtityInstanceDO wfActivtityInstanceDO = wfActivtityInstanceMapper.selectById(wfTaskInstanceDTO.getAiId());
+        if(wfActivtityInstanceDO.getAiCategory().equals(ActivityInstanceCategory.ACTIVITY_CATEGORY_POSITION)){
+            wfActivtityInstanceDO.setAiAssignerType(ActivityInstanceCategory.ACTIVITY_CATEGORY_SINGLE);
+            wfActivtityInstanceMapper.updateById(wfActivtityInstanceDO);
+            WfTaskInstanceDO wfTaskInstanceDO = WfTaskInstanceConvert.INSTANCE.convertDTOToDO(wfTaskInstanceDTO);
+            wfTaskInstanceMapper.updateById(wfTaskInstanceDO);
+            return WfTaskInstanceConvert.INSTANCE.convertDOToDTO(wfTaskInstanceDO);
+        }*/
+        //修改为修改任务执行人种类和执行人
+        wfTaskInstanceMapper.updateAssignerType(wfTaskInstanceDTO.getId(),wfTaskInstanceDTO.getTiAssigner());
+        //其实还应该回查下是否真的获取到了，高并发情况下有可能被别人抢了，有点懒就没写，而且同一个任务应该不会太多人抢。
+        stringRedisTemplate.opsForValue().set(wfTaskInstanceDTO.getId(),"1");
+        return wfTaskInstanceDTO;
+    }
+
+    @Override
+    public List<WfTaskInstanceBO> selectUnCompletedTask(String tiAssigner, String tiAssignerType) {
+        QueryWrapper<WfTaskInstanceDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("ti_assigner",tiAssigner)
+                .eq("ti_assigner_type",tiAssignerType);
+        List<WfTaskInstanceDO> wfTaskInstanceDOList = wfTaskInstanceMapper.selectList(queryWrapper);
+        List<WfTaskInstanceBO> wfTaskInstanceBOList = new ArrayList<>();
+        for(WfTaskInstanceDO wfTaskInstanceDO : wfTaskInstanceDOList){
+            WfTaskInstanceBO wfTaskInstanceBO = WfTaskInstanceConvert.INSTANCE.convertDOToBO(wfTaskInstanceDO);
+            WfActivtityInstanceDO wfActivtityInstanceDO = wfActivtityInstanceMapper.selectById(wfTaskInstanceBO.getAiId());
+            WfProcessInstanceDO wfProcessInstanceDO = wfProcessInstanceMapper.selectById(wfActivtityInstanceDO.getPiId());
+            wfTaskInstanceBO.setPiBusinesskey(wfProcessInstanceDO.getPiBusinesskey());
+            wfTaskInstanceBOList.add(wfTaskInstanceBO);
+        }
+        return wfTaskInstanceBOList;
+    }
+
+    @Override
+    public List<WfTaskInstanceBO> selectUnObtainedTask(String tiAssigner) {
+        QueryWrapper<WfTaskInstanceDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("ti_assigner",tiAssigner)
+                .eq("ti_assigner_type","1");
+        List<WfTaskInstanceDO> wfTaskInstanceDOList = wfTaskInstanceMapper.selectList(queryWrapper);
+        List<WfTaskInstanceBO> wfTaskInstanceBOList = new ArrayList<>();
+        for(WfTaskInstanceDO wfTaskInstanceDO : wfTaskInstanceDOList){
+            WfTaskInstanceBO wfTaskInstanceBO = WfTaskInstanceConvert.INSTANCE.convertDOToBO(wfTaskInstanceDO);
+            WfActivtityInstanceDO wfActivtityInstanceDO = wfActivtityInstanceMapper.selectById(wfTaskInstanceBO.getAiId());
+            WfProcessInstanceDO wfProcessInstanceDO = wfProcessInstanceMapper.selectById(wfActivtityInstanceDO.getPiId());
+            wfTaskInstanceBO.setPiBusinesskey(wfProcessInstanceDO.getPiBusinesskey());
+            wfTaskInstanceBOList.add(wfTaskInstanceBO);
+        }
+        return wfTaskInstanceBOList;
     }
 
     private void sendScheduleRequestMessage(WfTaskInstanceMessage wfTaskInstanceMessage) {

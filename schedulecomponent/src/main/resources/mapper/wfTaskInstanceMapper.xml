@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oilpeddler.wfengine.schedulecomponent.dao.WfTaskInstanceMapper">
+
+    <update id="updateAssignerType" keyProperty="id">
+        UPDATE wf_task_instance
+        SET ti_assigner_type = 0,ti_assigner = #{ti_assigner}
+        WHERE id = #{id} and ti_assigner_type = 1
+    </update>
+</mapper>

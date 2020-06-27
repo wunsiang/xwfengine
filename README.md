@@ -34,6 +34,9 @@ tail -f ~/logs/rocketmqlogs/broker.log
 ```shell
 cd /Users/wunsiang/development/dev_software/rocketmq-externals-master/rocketmq-console/
 java -jar target/rocketmq-console-ng-1.0.1.jar
+//dubbo-admin
+cd /Users/wunsiang/development/dev_software/dubbo-admin
+mvn --projects dubbo-admin-server spring-boot:run
 ```
 运行redis
 ```shell script

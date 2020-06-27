@@ -306,6 +306,22 @@ public class BpmnXMLConvertUtil {
                 case BpmnXMLConstants.ATTRIBUTE_NAME:
                     startEvent.setName(attribute.getValue());
                     break;
+                case BpmnXMLConstants.ATTRIBUTE_TASK_USER_PAGEKEY:
+                    startEvent.setPageKey(attribute.getValue());
+                    break;
+                case BpmnXMLConstants.ATTRIBUTE_SEQUENCE_FLOW_PARAMLIST:
+                    String content = attribute.getValue();
+                    String[] params = content.split(";");
+                    List<DataParam> dataParamList = new ArrayList<>();
+                    for(String paramData : params){
+                        String[] attrs = paramData.split(",");
+                        DataParam dataParam = new DataParam().setTaskNo(attrs[0])
+                                .setPpName(attrs[1])
+                                .setPpType(attrs[2])
+                                .setEnginePpName(attrs[3]);
+                        dataParamList.add(dataParam);
+                    }
+                    startEvent.setParamList(dataParamList);
             }
         }
         return startEvent;

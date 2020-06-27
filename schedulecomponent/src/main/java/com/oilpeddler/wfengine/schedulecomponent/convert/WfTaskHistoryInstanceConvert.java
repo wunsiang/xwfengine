@@ -1,8 +1,8 @@
 package com.oilpeddler.wfengine.schedulecomponent.convert;
 
-import com.oilpeddler.wfengine.schedulecomponent.bo.WfTaskHistoryInstanceBO;
+import com.oilpeddler.wfengine.common.bo.WfTaskHistoryInstanceBO;
+import com.oilpeddler.wfengine.common.dto.WfTaskHistoryInstanceDTO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfTaskHistoryInstanceDO;
-import com.oilpeddler.wfengine.schedulecomponent.dto.WfTaskHistoryInstanceDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;

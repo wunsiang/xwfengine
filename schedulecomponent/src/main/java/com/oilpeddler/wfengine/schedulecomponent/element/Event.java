@@ -1,11 +1,7 @@
 package com.oilpeddler.wfengine.schedulecomponent.element;
 
-import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import lombok.Data;
 import lombok.experimental.Accessors;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <p>

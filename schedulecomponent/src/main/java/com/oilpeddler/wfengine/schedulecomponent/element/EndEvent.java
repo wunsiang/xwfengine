@@ -1,18 +1,13 @@
 package com.oilpeddler.wfengine.schedulecomponent.element;
 
-import com.oilpeddler.wfengine.common.message.ProcessRequestMessage;
+import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessInstanceService;
 import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
-import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessInstanceService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
-import javax.annotation.Resource;
 import java.io.Serializable;
 
 /**

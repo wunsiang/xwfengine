@@ -13,6 +13,7 @@ import com.oilpeddler.wfengine.schedulecomponent.dao.WfProcessParamsRecordMapper
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfActivtityInstanceDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessParamsRecordDO;
 import com.oilpeddler.wfengine.schedulecomponent.element.BaseElement;
+import com.oilpeddler.wfengine.schedulecomponent.element.StartEvent;
 import com.oilpeddler.wfengine.schedulecomponent.element.UserTask;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
@@ -84,7 +85,8 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
                     .eq("usertask_no",userTask.getNo());
             WfActivtityInstanceDO wfActivtityInstanceDO = wfActivtityInstanceMapper.selectOne(queryWrapper);
             List<String> assList = new ArrayList<>();//即席和固定执行人的合集
-            assList.addAll(userTask.getAssignees());
+            if(userTask.getAssignees() != null && userTask.getAssignees().size() > 0)
+                assList.addAll(userTask.getAssignees());
             //即席判断与处理
             if(userTask.getDynamicAssignees() != null && userTask.getDynamicAssignees().length() > 0){
                 String[] dynamicAssigneesParam = userTask.getDynamicAssignees().split(",");
@@ -120,6 +122,10 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
                         .setPiId(piId)
                         .setPdId(pdId)
                         .setActiveTiNum(assList.size());
+                //这块做个补丁，但其实是流程图设计的不好先这么弄下
+                if(wfActivtityInstanceDO.getAiAssignerType() == null){
+                    wfActivtityInstanceDO.setAiAssignerType(userTask.getDynamicAssigneeType());
+                }
                 wfActivtityInstanceDO.setCreatetime(new Date());
                 wfActivtityInstanceDO.setUpdatetime(wfActivtityInstanceDO.getCreatetime());
                 wfActivtityInstanceMapper.insert(wfActivtityInstanceDO);
@@ -129,5 +135,46 @@ public class WfActivtityInstanceServiceImpl implements WfActivtityInstanceServic
             }
         }
         return wfActivtityInstanceBOList;
+    }
+
+    @Override
+    public WfActivtityInstanceBO addStartEventActivity(StartEvent startEvent, String piId, String pdId, String piStarter) {
+        QueryWrapper<WfActivtityInstanceDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("pi_id",piId)
+                .eq("usertask_no",startEvent.getNo());
+        WfActivtityInstanceDO wfActivtityInstanceDO = wfActivtityInstanceMapper.selectOne(queryWrapper);
+        if(wfActivtityInstanceDO != null){
+            wfActivtityInstanceDO.setAiAssignerId(JSON.toJSONString(piStarter));
+            wfActivtityInstanceDO.setActiveTiNum(1);
+            wfActivtityInstanceDO.setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_RUNNING);
+            wfActivtityInstanceDO.setUpdatetime(new Date());
+            wfActivtityInstanceMapper.updateById(wfActivtityInstanceDO);
+            //若之前活动产生了参数，则删除
+            Map<String,Object> conditionMap = new HashMap<>();
+            conditionMap.put("ai_id",wfActivtityInstanceDO.getId());
+            wfProcessParamsRecordMapper.deleteByMap(conditionMap);
+            //wfActivtityInstanceBOList.add(WfActivtityInstanceConvert.INSTANCE.convertDOToBO(wfActivtityInstanceDO));
+            //状态转为运行，打时间戳
+            wfActivityHistoryInstanceMapper.insert(WfActivtityInstanceConvert.INSTANCE.convertRunDOToHistoryDO(wfActivtityInstanceDO));
+        }else{
+            wfActivtityInstanceDO = new WfActivtityInstanceDO()
+                    .setAiName(startEvent.getName())
+                    .setAiStatus(ActivityInstanceState.TASK_ACTIVITY_STATE_RUNNING)
+                    .setAiAssignerId(JSON.toJSONString(piStarter))
+                    .setAiAssignerType("0")
+                    .setUsertaskNo(startEvent.getNo())
+                    .setAiCategory("01")
+                    .setPiId(piId)
+                    .setPdId(pdId)
+                    .setActiveTiNum(1);
+            wfActivtityInstanceDO.setCreatetime(new Date());
+            wfActivtityInstanceDO.setUpdatetime(wfActivtityInstanceDO.getCreatetime());
+            wfActivtityInstanceMapper.insert(wfActivtityInstanceDO);
+            //wfActivtityInstanceBOList.add(WfActivtityInstanceConvert.INSTANCE.convertDOToBO(wfActivtityInstanceDO));
+            //1025新增，之前活动开启时忘了打时间戳
+            wfActivityHistoryInstanceMapper.insert(WfActivtityInstanceConvert.INSTANCE.convertRunDOToHistoryDO(wfActivtityInstanceDO));
+        }
+        return WfActivtityInstanceConvert.INSTANCE.convertDOToBO(wfActivtityInstanceDO);
     }
 }

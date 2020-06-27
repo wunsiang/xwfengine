@@ -31,7 +31,7 @@ dubbo:
   #    check: false
   consumer:
     timeout: 30000
-#    check: false
+    check: false
 # rocketmq
 rocketmq:
   name-server: 127.0.0.1:9876

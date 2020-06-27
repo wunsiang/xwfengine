@@ -14,5 +14,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface WfTaskInstanceMapper extends BaseMapper<WfTaskInstanceDO> {
-
+    void updateAssignerType(String id,String ti_assigner);
 }

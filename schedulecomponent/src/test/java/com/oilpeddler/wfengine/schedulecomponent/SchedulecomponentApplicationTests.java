@@ -1,11 +1,12 @@
 package com.oilpeddler.wfengine.schedulecomponent;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.oilpeddler.wfengine.common.api.scheduleservice.WfProcessDefinitionService;
+import com.oilpeddler.wfengine.common.bo.WfProcessDefinitionBO;
 import com.oilpeddler.wfengine.common.dto.WfProcessTemplateDTO;
-import com.oilpeddler.wfengine.schedulecomponent.bo.WfProcessDefinitionBO;
 import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
+import com.oilpeddler.wfengine.schedulecomponent.dao.redis.BpmnModelCacheDao;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
-import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessDefinitionService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessTemplateService;
 import org.junit.Test;
@@ -60,10 +61,12 @@ public class SchedulecomponentApplicationTests {
         /**
          * 模拟流程图提交流程图并定义一个新的流程模板
          */
-        WfProcessTemplateDTO wfProcessTemplateDTO = wfProcessTemplateService.selectByPtFilename("即席流程图");
+        WfProcessTemplateDTO wfProcessTemplateDTO = wfProcessTemplateService.selectByPtFilename("请假审批");
         WfProcessDefinitionBO wfProcessDefinitionBO = wfProcessDefinitionService.generatePDFromTemplateFile(wfProcessTemplateDTO);
         //wfProcessDefinitionBO.setBpmnModel(null);
-        wfProcessDefinitionService.setToCache(wfProcessDefinitionBO);
+
+
+        //wfProcessDefinitionService.setToCache(wfProcessDefinitionBO);
 
 /*        *//**
          * 模拟开发人员配置业务表单参数名称和流程引擎参数映射关系,演示的时候直接在数据库里面配吧，直观又省事

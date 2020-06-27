@@ -1,10 +1,10 @@
 package com.oilpeddler.wfengine.schedulecomponent.convert;
 
 import com.oilpeddler.wfengine.common.bo.WfProcessInstanceBO;
+import com.oilpeddler.wfengine.common.dto.WfProcessInstanceStartDTO;
 import com.oilpeddler.wfengine.common.message.WfProcessInstanceMessage;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessHistoryInstanceDO;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfProcessInstanceDO;
-import com.oilpeddler.wfengine.schedulecomponent.dto.WfProcessInstanceStartDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

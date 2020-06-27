@@ -33,4 +33,6 @@ public class WfProcessDefinitionDO extends BaseDO {
      */
     private String ptId;
 
+    private String startForm;
+
 }

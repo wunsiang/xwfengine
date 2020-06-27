@@ -5,26 +5,16 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
 import com.oilpeddler.wfengine.common.constant.TaskInstanceState;
-import com.oilpeddler.wfengine.common.message.TaskRequestMessage;
 import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dao.WfTaskInstanceMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.WfTaskInstanceDO;
-import com.oilpeddler.wfengine.schedulecomponent.service.TokenService;
 import com.oilpeddler.wfengine.schedulecomponent.service.WfActivtityInstanceService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.apache.rocketmq.client.producer.TransactionSendResult;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 
-import javax.annotation.Resource;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +55,7 @@ public class UserTask extends Node {
     /**
      * 活动执行人
      */
-    protected List<String> assignees;
+    protected List<String> assignees = new ArrayList<>();
 
     /**
      * 活动类型
@@ -90,7 +80,6 @@ public class UserTask extends Node {
     protected List<DataParam> paramList;
 
     public void execute(Token token){
-        //TODO 真正开始执行节点，发送消息给表单服务开启任务
         token.setUpdatetime(new Date());
         if(token.getId() == null)
             SpringUtil.getBean(TokenMapper.class).insert(token);
@@ -112,7 +101,9 @@ public class UserTask extends Node {
                     .setBfId(wfActivtityInstanceBO.getBfId())
                     .setAiId(wfActivtityInstanceBO.getId())
                     .setPdId(wfActivtityInstanceBO.getPdId())
-                    .setPiId(wfActivtityInstanceBO.getPiId());
+                    .setTiAssignerType(wfActivtityInstanceBO.getAiAssignerType())
+                    .setPiId(wfActivtityInstanceBO.getPiId())
+                    .setUsertaskNo(wfActivtityInstanceBO.getUsertaskNo());
             wfTaskInstanceDO.setCreatetime(new Date());
             wfTaskInstanceDO.setUpdatetime(wfTaskInstanceDO.getCreatetime());
             SpringUtil.getBean(WfTaskInstanceMapper.class).insert(wfTaskInstanceDO);

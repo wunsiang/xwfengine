@@ -1,0 +1,40 @@
+spring:
+  # datasource
+  springmvc:
+    application:
+      # 要扫描的包名
+      scanPackage: approvalsystem
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://127.0.0.1:3306/zwfengine?useSSL=false&useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 1234
+    druid:
+      initial-size: 5
+      max-active: 5
+      max-wait: 10000
+# mybatis
+mybatis-plus:
+  config-location: classpath:mybatis-config.xml
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: approvalsystem.dataobject
+# dubbo
+dubbo:
+  application:
+    name: approvalsystem-service
+  registry:
+    address: zookeeper://127.0.0.1:2181
+  #    check: false
+  protocol:
+    port: -1
+    name: dubbo
+  scan:
+    base-packages: approvalsystem.service
+  #  reference:
+  #    check: false
+  consumer:
+    timeout: 30000
+#    check: false
+server:
+  port: 8989

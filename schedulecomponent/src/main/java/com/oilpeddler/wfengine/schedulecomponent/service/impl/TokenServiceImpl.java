@@ -29,6 +29,8 @@ public class TokenServiceImpl implements TokenService {
                 .eq("element_no",elementNo);
         Token currentToken = tokenMapper.selectOne(queryWrapper);
         currentToken.setCurrentNode(findUserTaskByNo(currentToken.getElementNo(),process));
+        if(currentToken.getCurrentNode() == null && process.getStartEvent().getNo().equals(currentToken.getElementNo()))
+            currentToken.setCurrentNode(process.getStartEvent());
         return currentToken;
     }
 

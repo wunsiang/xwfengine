@@ -49,5 +49,8 @@ public class WfTaskInstanceDO extends BaseDO {
      */
     private String pdId;
 
+    private String tiAssignerType;
+
+    private String usertaskNo;
 
 }

@@ -3,6 +3,7 @@ package com.oilpeddler.wfengine.schedulecomponent.service;
 import com.oilpeddler.wfengine.common.bo.WfActivtityInstanceBO;
 import com.oilpeddler.wfengine.common.dto.WfActivtityInstanceDTO;
 import com.oilpeddler.wfengine.schedulecomponent.element.BaseElement;
+import com.oilpeddler.wfengine.schedulecomponent.element.StartEvent;
 
 import java.util.List;
 import java.util.Map;
@@ -18,4 +19,5 @@ public interface WfActivtityInstanceService {
 
     List<WfActivtityInstanceBO> addActivityList(List<BaseElement> userTaskList, String piId, String pdId);
 
+    WfActivtityInstanceBO addStartEventActivity(StartEvent startEvent, String piId, String pdId, String piStarter);
 }

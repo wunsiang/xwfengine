@@ -1,6 +1,7 @@
 package com.oilpeddler.wfengine.common.message;
 
 
+import com.oilpeddler.wfengine.common.dataobject.ParmObject;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -29,5 +30,10 @@ public class WfProcessInstanceMessage {
     private String piStarter;
 
     private String piBusinesskey;
+
+    /**
+     * 第一个活动对应的必填项数据
+     */
+    Map<String, ParmObject> requiredData;
 
 }

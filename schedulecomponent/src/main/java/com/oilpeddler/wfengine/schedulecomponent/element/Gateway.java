@@ -2,15 +2,11 @@ package com.oilpeddler.wfengine.schedulecomponent.element;
 
 import com.oilpeddler.wfengine.schedulecomponent.dao.TokenMapper;
 import com.oilpeddler.wfengine.schedulecomponent.dataobject.Token;
-import com.oilpeddler.wfengine.schedulecomponent.service.WfProcessParamsRecordService;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <p>
@@ -44,7 +40,6 @@ public abstract class Gateway extends Node {
     public void fork(Token token){
         token.setChildNum(outgoingFlows.size());
         SpringUtil.getBean(TokenMapper.class).updateById(token);
-        //TODO 。。。
         for(SequenceFlow sequenceFlow : outgoingFlows){
             Token childToken = new Token();
             childToken.setParent(token);
@@ -61,7 +56,7 @@ public abstract class Gateway extends Node {
     }
 
     public void merge(Token token){
-        //TODO 判断当前token是不是父token的最后一个子token，如果是就把爹弄来，不是就删了自个了事
+        //判断当前token是不是父token的最后一个子token，如果是就把爹弄来，不是就删了自个了事
         TokenMapper tokenMapper = SpringUtil.getBean(TokenMapper.class);
         tokenMapper.deleteById(token.getId());
         tokenMapper.decrementChildNum(token.getParentId());
@@ -72,24 +67,5 @@ public abstract class Gateway extends Node {
             parentToken.setChildren(new ArrayList<>());
             leave(parentToken);
         }
-
-        /*List<Token> concurrentTokens = token.getParent().getChildren();
-        boolean reactivate = true;
-        for(Token concurrentToken : concurrentTokens){
-            if(concurrentToken.getCurrentNode() != token.getCurrentNode()){
-                reactivate = false;
-            }else{
-                SpringUtil.getBean(TokenMapper.class).deleteById(concurrentToken.getId());
-            }
-        }
-        //删除当前的并发子节点，父节点直接到达当前merge网关节点
-        if(reactivate){
-            Token father = token.getParent();
-            father.setCurrentNode(this);
-            father.setChildren(new ArrayList<>());
-            leave(father);
-        }*/
     }
-    /*protected List<SequenceFlow> incomingFlows = new ArrayList<SequenceFlow>();
-    protected List<SequenceFlow> outgoingFlows = new ArrayList<SequenceFlow>();*/
 }

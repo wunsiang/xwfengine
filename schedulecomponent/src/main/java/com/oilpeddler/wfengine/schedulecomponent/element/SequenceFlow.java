@@ -8,7 +8,6 @@ import com.oilpeddler.wfengine.schedulecomponent.tools.JexlUtil;
 import com.oilpeddler.wfengine.schedulecomponent.tools.SpringUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.context.ApplicationContext;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -64,7 +63,7 @@ public class SequenceFlow extends BaseElement implements Serializable {
             token.setCurrentNode(null);
             ((Node)to).enter(token);
         }else if(conditionExpression != null && conditionExpression.length() > 0){
-            //TODO 如有条件表达式，则开始条件判断，符合条件才能通过，否则丢弃令牌，条件判断逻辑同排他网关handler部分
+            //TODO 这块其实用不上，因为无论是排他网关还是选择网关都会提前判定执行那些有向弧进行变迁
             Map<String,Object> requiredData = new HashMap<>();
             for(DataParam dataParam : paramList){
                 WfProcessParamsRecordBO wfProcessParamsRecordBO = SpringUtil.getBean(WfProcessParamsRecordService.class).getByEnginePpName(dataParam.getEnginePpName(),token.getPiId(),token.getPdId(),dataParam.getTaskNo());
